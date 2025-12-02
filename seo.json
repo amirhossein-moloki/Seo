@@ -212,9 +212,9 @@
         -100
       ],
       "parameters": {
-        "text": "=Here are 24 trending AI-related articles published today:\n\n {{ JSON.stringify($json.data) }}\n\nFrom this, generate:\n1. 10 unique long-tail blog title ideas based on these trends\n2. For each title, suggest:\n   - Main keyword\n   - Related keywords\n   - Suggested angle or tone (e.g. educational, provocative, analytical)\n3. Ensure each title is SEO-friendly, non-generic, and future-resilient\n",
+        "text": "=Here are 24 trending AI-related articles published today:\n\n{{ JSON.stringify($json.data) }}\n\nYour task:\nYou are an AI content strategist and SEO expert for an AI-focused blog.\n\nFrom these articles, generate EXACTLY 10 long\u2011tail blog post ideas.\n\nFor each idea, you MUST return a JSON object with the following fields:\n\n- title: A unique, SEO\u2011friendly long\u2011tail blog title\n- main_keyword: The primary keyword that the article should target\n- related_keywords: An array of 3\u20118 related keywords (strings)\n- tone: Suggested writing tone, e.g. \"educational\", \"analytical\", \"provocative\"\n- link_articles: An array of article URLs from the input that are most relevant to this idea\n- intent: One of [\"informational\", \"commercial\", \"navigational\"] based on the search intent\n- primary_entity: The main entity/topic (e.g. \"OpenAI\", \"LLM agents\", \"RAG pipelines\")\n- cluster_id: A short cluster slug describing the topic silo, e.g. \"agentic-ai/tools\", \"llm/governance\"\n- topic_fingerprint: A short, stable slug representing the search intent. Two ideas with the same intent SHOULD have the same topic_fingerprint. Example: \"openai-api-pricing-guide\", \"ai-agents-for-marketing\".\n- refresh_schedule_days: Number of days after which this topic should be refreshed (e.g. 30, 60, 90)\n- publish_target: For now ALWAYS set this to \"new_post\" (later logic may change this).\n\nOutput format:\nReturn a single JSON object with the following structure:\n{\n  \"output\": [\n    {\n      \"title\": \"...\",\n      \"main_keyword\": \"...\",\n      \"related_keywords\": [\"...\"],\n      \"tone\": \"...\",\n      \"link_articles\": [\"https://...\"],\n      \"intent\": \"informational\",\n      \"primary_entity\": \"...\",\n      \"cluster_id\": \"...\",\n      \"topic_fingerprint\": \"...\",\n      \"refresh_schedule_days\": 60,\n      \"publish_target\": \"new_post\"\n    }\n  ]\n}\n\nDo NOT return markdown. Return ONLY valid JSON.",
         "options": {
-          "systemMessage": "You are a content strategist for an AI-focused blog.\n"
+          "systemMessage": "You are a content strategist and SEO expert for an AI-focused blog. You think in terms of search intent, topic clusters, and long\u2011term SEO value."
         },
         "promptType": "define",
         "hasOutputParser": true
@@ -318,7 +318,7 @@
         "color": 7,
         "width": 1020,
         "height": 1360,
-        "content": "## Steps\n1. RSS Feed Ingestion (Daily Trigger)\n[x] Fetch latest articles from curated AI RSS feeds:\n[x] OpenAI, Meta AI, DeepMind, arXiv AI, HuggingFace, TechCrunch AI, VentureBeat AI, etc.\n[x] Deduplicate and store links + metadata (title, date, summary)\n\n2. Relevance Filtering\n[x] Filter for articles:\n[x] Published within last 24 hours\n[x] Containing key topics: model releases, tool updates, research, AI regulation, etc.\n[x] Score relevance using: Keyword match, Named entity recognition, Popularity heuristics (retweet count, domain authority, etc.)\n\n3. Content Summarization\n[x] Summarize 2–3 selected articles using extractive + abstractive methods\nExtract:\n[x] Key ideas\n[x] Notable names (models, companies, researchers)\n[x] Quotes or stats\n\n4. Long-Tail Angle Generation\nConvert short-tail news into long-tail evergreen angles: E.g. “OpenAI launches CriticGPT” → “Why AI Code Review Will Replace Junior Engineers”\nUse prompt chaining:\n[x] Step 1: extract the core topic\n[x] Step 2: generate 5 long-tail blog titles with intent match (e.g., 'how', 'why', 'what's next')\n[x] Step 3: score titles based on uniqueness + search intent\n\n5. SEO-Driven Outline Creation\nGenerate outline optimized for:\n[x] H1 + H2 structure\n[x] Natural keyword inclusion\n[x] Featured snippet targeting\n[x] Structure: Intro → Background → Trend → Insight → Forecast → CTA\n\n6. Full-Length Blog Drafting\n[x] Draft 1,000–1,500 word blog using outline\nInclude:\n[x] Citations from original articles\n[x] External links for trust\n[x] Analogies, examples, future implications\n[x] Maintain tone: informative, thought-leader, semi-technical\n\n7. SEO Enrichment\nGenerate:\n[x] Meta title (60 chars)\n[x] Meta description (160 chars)\n[x] Alt text for images\n[x] Slug URL with keyword\n[x] Auto-check for keyword density, passive voice, Flesch score\n\n8. Image Generation (Optional)\n[x] Create featured image using AI (e.g., DALL·E)\n\n9. Export & Publish\n[x] Export article in Markdown or HTML\n[x] Push to CMS (e.g., WordPress REST API)\n[x] publish immediately\n[ ] schedule\n\n10. Logging & Feedback Loop\n[x] Log:\n- Source articles\n- Generated title\n- Keywords used\n- Post URL\n- Store in database for:\n- Deduplication\n- Trend tracking\n- Traffic correlation\n[ ] Feedback loop:\n\n\n"
+        "content": "## Steps\n1. RSS Feed Ingestion (Daily Trigger)\n[x] Fetch latest articles from curated AI RSS feeds:\n[x] OpenAI, Meta AI, DeepMind, arXiv AI, HuggingFace, TechCrunch AI, VentureBeat AI, etc.\n[x] Deduplicate and store links + metadata (title, date, summary)\n\n2. Relevance Filtering\n[x] Filter for articles:\n[x] Published within last 24 hours\n[x] Containing key topics: model releases, tool updates, research, AI regulation, etc.\n[x] Score relevance using: Keyword match, Named entity recognition, Popularity heuristics (retweet count, domain authority, etc.)\n\n3. Content Summarization\n[x] Summarize 2\u20133 selected articles using extractive + abstractive methods\nExtract:\n[x] Key ideas\n[x] Notable names (models, companies, researchers)\n[x] Quotes or stats\n\n4. Long-Tail Angle Generation\nConvert short-tail news into long-tail evergreen angles: E.g. \u201cOpenAI launches CriticGPT\u201d \u2192 \u201cWhy AI Code Review Will Replace Junior Engineers\u201d\nUse prompt chaining:\n[x] Step 1: extract the core topic\n[x] Step 2: generate 5 long-tail blog titles with intent match (e.g., 'how', 'why', 'what's next')\n[x] Step 3: score titles based on uniqueness + search intent\n\n5. SEO-Driven Outline Creation\nGenerate outline optimized for:\n[x] H1 + H2 structure\n[x] Natural keyword inclusion\n[x] Featured snippet targeting\n[x] Structure: Intro \u2192 Background \u2192 Trend \u2192 Insight \u2192 Forecast \u2192 CTA\n\n6. Full-Length Blog Drafting\n[x] Draft 1,000\u20131,500 word blog using outline\nInclude:\n[x] Citations from original articles\n[x] External links for trust\n[x] Analogies, examples, future implications\n[x] Maintain tone: informative, thought-leader, semi-technical\n\n7. SEO Enrichment\nGenerate:\n[x] Meta title (60 chars)\n[x] Meta description (160 chars)\n[x] Alt text for images\n[x] Slug URL with keyword\n[x] Auto-check for keyword density, passive voice, Flesch score\n\n8. Image Generation (Optional)\n[x] Create featured image using AI (e.g., DALL\u00b7E)\n\n9. Export & Publish\n[x] Export article in Markdown or HTML\n[x] Push to CMS (e.g., WordPress REST API)\n[x] publish immediately\n[ ] schedule\n\n10. Logging & Feedback Loop\n[x] Log:\n- Source articles\n- Generated title\n- Keywords used\n- Post URL\n- Store in database for:\n- Deduplication\n- Trend tracking\n- Traffic correlation\n[ ] Feedback loop:\n\n\n"
       },
       "typeVersion": 1
     },
@@ -453,7 +453,7 @@
         1640
       ],
       "parameters": {
-        "text": "=You are a viral blog strategist. Given the following blog article concept: {{ JSON.stringify($json) }}\n\nGenerate 5 compelling blog post titles that:\n- Evoke curiosity or urgency\n- Include emotional or controversial angles\n- Use long-tail keywords for SEO\n- Are clear, specific, and make the reader want to click\n- Follow formats like:\n  - “Why [X] Is About to Change Everything in [Y]”\n  - “The Hidden Truth About [Topic]”\n  - “How [Persona] Are Using [X] to [Y]”\n  - “What No One Tells You About [Topic]”\n  - “X Predictions About the Future of [Topic] That’ll Shock You”\n\nEnd your response with:  \n**Core Topic:** [a single phrase summarizing the article idea]\n",
+        "text": "=You are a viral blog strategist. Given the following blog article concept: {{ JSON.stringify($json) }}\n\nGenerate 5 compelling blog post titles that:\n- Evoke curiosity or urgency\n- Include emotional or controversial angles\n- Use long-tail keywords for SEO\n- Are clear, specific, and make the reader want to click\n- Follow formats like:\n  - \u201cWhy [X] Is About to Change Everything in [Y]\u201d\n  - \u201cThe Hidden Truth About [Topic]\u201d\n  - \u201cHow [Persona] Are Using [X] to [Y]\u201d\n  - \u201cWhat No One Tells You About [Topic]\u201d\n  - \u201cX Predictions About the Future of [Topic] That\u2019ll Shock You\u201d\n\nEnd your response with:  \n**Core Topic:** [a single phrase summarizing the article idea]\n",
         "options": {},
         "promptType": "define",
         "hasOutputParser": true
@@ -536,7 +536,7 @@
         -100
       ],
       "parameters": {
-        "fields": "=title,main_keyword,related_keywords,tone,completed_step,link_articles",
+        "fields": "=title,main_keyword,related_keywords,tone,completed_step,link_articles,intent,primary_entity,cluster_id,topic_fingerprint,refresh_schedule_days,publish_target,revision_loop_count,seo_audit,wp_post_id,post_url,published_at,refresh_schedule,last_refreshed_at",
         "options": {
           "dateFields": "date"
         },
@@ -833,9 +833,9 @@
         1640
       ],
       "parameters": {
-        "text": "=Use this information:\n\n- **Title**: {{ $('MongoDB3').item.json.blog_title }}\n- **Main Keyword**: {{ $('MongoDB3').item.json.main_keyword }}\n- **Related Keywords**: {{ JSON.stringify($('MongoDB3').item.json.related_keywords) }}\n- **Tone**: {{ $('MongoDB3').item.json.tone }}\n- **Outline**: {{ $('Code3').item.json.blog_outline }}\n- **Related Articles**: {{ JSON.stringify($('MongoDB3').item.json.articles) }}\n- **Citations**: {{ JSON.stringify($('MongoDB3').item.json.link_articles) }}\n\nInstructions:\n\n1. Write approximately 300 to 500 words per section outline\n2. Naturally include the main and related keywords.\n3. Incorporate:\n   - At least 2 **citations** (link to or mention source_articles)\n   - 1 analogy or example for clarity\n   - Future implications or forecasts\n4. Maintain the tone: {{ $('MongoDB3').item.json.tone }}\n5. Write in Markdown format with:\n   - `#` for H1\n   - `##` for H2\n   - bullet points, bold text, or italics where needed\n\nRespond with the full blog article only.\n",
+        "text": "=You are an AI blog writer and on\u2011page SEO expert.\n\nYou will receive:\n- blog_title, main_keyword, related_keywords, tone, core_topic\n- blog_outline (markdown outline with headings)\n- articles: research summaries and key points\n- internal_link_candidates: a list of recent posts from our WordPress blog\n\nYour task:\n1. Write a full blog article in **markdown**, following the outline and tone.\n2. Naturally integrate the **main_keyword** and **related_keywords** in:\n   - Introduction\n   - At least one H2\n   - Body paragraphs\n3. Insert **3\u20135 internal links** to the most relevant posts from `internal_link_candidates`.\n   - Use human\u2011readable anchor text (not the raw slug)\n   - The link format should be standard markdown: [anchor text](https://...)\n4. At the end of the article, add a section \"FAQ\" with 3\u20136 questions and concise answers.\n   - The questions should match real search intent around the topic.\n5. Keep paragraphs short, use bullet lists when helpful, and keep the reading experience smooth.\n\nReturn ONLY the final markdown article. Do NOT wrap it in triple backticks.",
         "options": {
-          "systemMessage": "You are a professional blog writer for a leading AI publication.\n\nYour job is to write a complete, well-structured, SEO-friendly blog post."
+          "systemMessage": "You write high\u2011quality, SEO\u2011friendly blog posts with internal links and FAQ sections."
         },
         "promptType": "define",
         "hasOutputParser": true
@@ -930,9 +930,9 @@
         1640
       ],
       "parameters": {
-        "text": "=Based on the blog article below, generate:\n1. A **meta title** (max 60 characters)\n2. A **meta description** (max 160 characters)\n3. An **image alt text** for the featured image\n4. A **URL slug** based on the blog title and keyword\n5. A basic SEO report:\n   - Keyword density for the main keyword\n   - Count of passive voice sentences\n   - Estimated Flesch reading score (0–100 scale)\n\nData:\n- Title: {{ $('MongoDB3').item.json.blog_title }}\n- Main Keyword: {{ $('MongoDB3').item.json.main_keyword }}\n- Related Keywords: {{ JSON.stringify($('MongoDB3').item.json.related_keywords) }}\n- Content: {{ $json.blog_article }}\n",
+        "text": "=You are an SEO expert and technical SEO specialist.\n\nBased on the blog article and metadata below, generate a structured SEO package.\n\nReturn a single JSON object with the following fields:\n- meta_title: string (<= 60 chars)\n- meta_description: string (<= 160 chars)\n- image_alt_text: string\n- slug: string (URL\u2011safe, kebab\u2011case)\n- og_title: string\n- og_description: string\n- twitter_title: string\n- twitter_description: string\n- schema: an object with valid JSON\u2011LD for:\n  - BlogPosting/Article\n  - FAQPage (if FAQ exists in the article)\n\nInputs:\n- blog_title: {{ $('MongoDB3').item.json.blog_title }}\n- main_keyword: {{ $('MongoDB3').item.json.main_keyword }}\n- related_keywords: {{ JSON.stringify($('MongoDB3').item.json.related_keywords) }}\n- article_markdown: {{ $json.blog_article }}\n- post_url: (the final URL will be: https://articles.emp0.com/{{ $('MongoDB3').item.json.slug || '' }})\n\nConstraints:\n- Ensure meta_title and meta_description are compelling and use the main keyword naturally.\n- Schema must be valid JSON\u2011LD for Google.\n\nReturn ONLY valid JSON.",
         "options": {
-          "systemMessage": "You are an SEO expert."
+          "systemMessage": "You are an SEO and structured data expert."
         },
         "promptType": "define",
         "hasOutputParser": true
@@ -973,7 +973,7 @@
         1640
       ],
       "parameters": {
-        "fields": "=completed_step,meta_title,meta_description,image_alt_text, slug, seo_report",
+        "fields": "=completed_step,meta_title,meta_description,image_alt_text,slug,seo_report,og_title,og_description,twitter_title,twitter_description,schema",
         "options": {},
         "operation": "update",
         "updateKey": "_id",
@@ -1071,7 +1071,7 @@
         2640
       ],
       "parameters": {
-        "text": "=Use the blog title, main keyword, and image alt text to craft a image generation prompt that captures a human-centered, emotionally compelling moment related to the image alt text.\n\nImagine a scene that tells a story or captures a pivotal feeling — something symbolic, cinematic, and relatable. Think in terms of real-world settings, natural environments, recognizable objects, or subtle interactions that represent change, tension, or hope. Let the visual convey meaning without relying on text or overt symbols.\n\nAvoid abstract visualizations like circuits, networks, floating data, or robotic aesthetics. Instead, evoke emotion and narrative through setting, lighting, perspective, and atmosphere. Let the image feel like a glimpse into a personal story, a lived moment, or a metaphor unfolding.\n\nDo not include any text or words in the image.\n\nRespond only with the image generation rompt.\n\nBlog Titile: {{ $json.blog_title }}\nMain Keyword: {{ $json.main_keyword }}\nImage Alt Text: {{ $json.image_alt_text }}",
+        "text": "=Use the blog title, main keyword, and image alt text to craft a image generation prompt that captures a human-centered, emotionally compelling moment related to the image alt text.\n\nImagine a scene that tells a story or captures a pivotal feeling \u2014 something symbolic, cinematic, and relatable. Think in terms of real-world settings, natural environments, recognizable objects, or subtle interactions that represent change, tension, or hope. Let the visual convey meaning without relying on text or overt symbols.\n\nAvoid abstract visualizations like circuits, networks, floating data, or robotic aesthetics. Instead, evoke emotion and narrative through setting, lighting, perspective, and atmosphere. Let the image feel like a glimpse into a personal story, a lived moment, or a metaphor unfolding.\n\nDo not include any text or words in the image.\n\nRespond only with the image generation rompt.\n\nBlog Titile: {{ $json.blog_title }}\nMain Keyword: {{ $json.main_keyword }}\nImage Alt Text: {{ $json.image_alt_text }}",
         "options": {
           "systemMessage": "You are a creative visual expert in marketing and digital design. Your job is to craft emotionally compelling image prompts that generate click bait images for social media posts\n"
         },
@@ -1556,7 +1556,7 @@
         1860
       ],
       "parameters": {
-        "jsonSchemaExample": "[\n  {\n    \"outline\": \"```markdown\\n# Navigating Legal Complexities in AI and Copyright: A Complete Guide\\n\\n## Introduction: The Intersection of AI and Copyright\\nThe rise of generative AI has sparked a seismic shift in the creative landscape, leading to a plethora of AI copyright issues that challenge traditional views on intellectual property. As artists, musicians, and creators increasingly turn to AI-generated content, the question arises: who owns the rights to these creations? In this guide, we will explore the nuances of AI copyright issues, the implications for creativity rights, and what the future holds for artists harnessing the power of AI.\\n\\n## Background: Understanding AI and Copyright\\nIn order to grasp the complexities of AI copyright issues, one must first understand the fundamentals of copyright law and its application to generative AI. Copyright is designed to protect original works of authorship, but the emergence of AI-generated content complicates this traditional framework. This section will cover:\\n- Key definitions of intellectual property.\\n- The role of creativity rights in copyright law.\\n- Examples of how traditional copyright has been challenged by advancements in generative AI technologies.\\n\\n## Trend: The Rise of Generative AI and Its Impact\\nThe increasing sophistication of generative AI tools means more creators are using these technologies to produce art and music. This trend raises significant questions about originality and ownership. In this section, we will discuss:\\n- Notable applications of generative AI in various creative fields.\\n- The ongoing debate surrounding the legality and ethics of AI-generated content.\\n- Highlighting perspectives from industry experts, including insights from creators like Ed Sheeran on the nature of creativity in a world shaped by AI.\\n\\n## Insight: The Tension Between Innovation and Copyright Law\\nAs the lines blur between human creativity and machine-generated art, there is a growing tension between innovation and the protection of creativity rights. This section will delve into:\\n- Case studies showcasing the struggles artists face in asserting ownership over AI-assisted works.\\n- Quotations from thought leaders, such as Ed Sheeran’s view on the shared building blocks of creativity.\\n- Analyzing the statements of influential figures who have commented on the implications of AI on artistic expression, including references to past artistic movements.\\n\\n## Forecast: The Future of AI Copyright Issues\\nLooking ahead, the legal frameworks surrounding AI copyright issues are likely to evolve. This section will provide:\\n- Predictions on how copyright law may adapt to accommodate the realities of generative AI.\\n- Insights into potential policy changes and reforms that could arise from ongoing debates.\\n- A discussion on the importance of fostering a balanced approach that respects creativity rights while encouraging innovation.\\n\\n## Call to Action: Join the Conversation\\nAs the landscape of AI-generated content continues to evolve, the need for informed stakeholders is more critical than ever. We encourage readers to engage in this important dialogue. Share your thoughts on AI copyright issues and how you see the future of creativity rights developing. Stay updated with our latest insights and contribute to shaping the future of intellectual property in the age of AI.\\n```\\n\"\n  }\n]"
+        "jsonSchemaExample": "[\n  {\n    \"outline\": \"```markdown\\n# Navigating Legal Complexities in AI and Copyright: A Complete Guide\\n\\n## Introduction: The Intersection of AI and Copyright\\nThe rise of generative AI has sparked a seismic shift in the creative landscape, leading to a plethora of AI copyright issues that challenge traditional views on intellectual property. As artists, musicians, and creators increasingly turn to AI-generated content, the question arises: who owns the rights to these creations? In this guide, we will explore the nuances of AI copyright issues, the implications for creativity rights, and what the future holds for artists harnessing the power of AI.\\n\\n## Background: Understanding AI and Copyright\\nIn order to grasp the complexities of AI copyright issues, one must first understand the fundamentals of copyright law and its application to generative AI. Copyright is designed to protect original works of authorship, but the emergence of AI-generated content complicates this traditional framework. This section will cover:\\n- Key definitions of intellectual property.\\n- The role of creativity rights in copyright law.\\n- Examples of how traditional copyright has been challenged by advancements in generative AI technologies.\\n\\n## Trend: The Rise of Generative AI and Its Impact\\nThe increasing sophistication of generative AI tools means more creators are using these technologies to produce art and music. This trend raises significant questions about originality and ownership. In this section, we will discuss:\\n- Notable applications of generative AI in various creative fields.\\n- The ongoing debate surrounding the legality and ethics of AI-generated content.\\n- Highlighting perspectives from industry experts, including insights from creators like Ed Sheeran on the nature of creativity in a world shaped by AI.\\n\\n## Insight: The Tension Between Innovation and Copyright Law\\nAs the lines blur between human creativity and machine-generated art, there is a growing tension between innovation and the protection of creativity rights. This section will delve into:\\n- Case studies showcasing the struggles artists face in asserting ownership over AI-assisted works.\\n- Quotations from thought leaders, such as Ed Sheeran\u2019s view on the shared building blocks of creativity.\\n- Analyzing the statements of influential figures who have commented on the implications of AI on artistic expression, including references to past artistic movements.\\n\\n## Forecast: The Future of AI Copyright Issues\\nLooking ahead, the legal frameworks surrounding AI copyright issues are likely to evolve. This section will provide:\\n- Predictions on how copyright law may adapt to accommodate the realities of generative AI.\\n- Insights into potential policy changes and reforms that could arise from ongoing debates.\\n- A discussion on the importance of fostering a balanced approach that respects creativity rights while encouraging innovation.\\n\\n## Call to Action: Join the Conversation\\nAs the landscape of AI-generated content continues to evolve, the need for informed stakeholders is more critical than ever. We encourage readers to engage in this important dialogue. Share your thoughts on AI copyright issues and how you see the future of creativity rights developing. Stay updated with our latest insights and contribute to shaping the future of intellectual property in the age of AI.\\n```\\n\"\n  }\n]"
       },
       "typeVersion": 1.3
     },
@@ -1628,6 +1628,180 @@
         "jsCode": "return $input.all();"
       },
       "typeVersion": 2
+    },
+    {
+      "id": "code-topic-defaults-1",
+      "name": "Code Topic Defaults",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2600,
+        -100
+      ],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const item = $input.item.json;\n\n// Ensure important SEO fields exist with sane defaults\nitem.revision_loop_count = item.revision_loop_count ?? 0;\nitem.seo_audit = item.seo_audit ?? {};\nitem.wp_post_id = item.wp_post_id ?? null;\nitem.post_url = item.post_url ?? null;\nitem.published_at = item.published_at ?? null;\n\n// Normalize refresh schedule\nif (!item.refresh_schedule_days || item.refresh_schedule_days <= 0) {\n  item.refresh_schedule_days = 60;\n}\n\nitem.refresh_schedule = item.refresh_schedule ?? item.refresh_schedule_days;\nitem.last_refreshed_at = item.last_refreshed_at ?? null;\n\n// Make sure publish_target exists\nif (!item.publish_target) {\n  item.publish_target = \"new_post\";\n}\n\nreturn {\n  json: item\n};"
+      }
+    },
+    {
+      "id": "wordpress-get-posts-1",
+      "name": "Wordpress Get Posts",
+      "type": "n8n-nodes-base.wordpress",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        1800
+      ],
+      "parameters": {
+        "operation": "getAll",
+        "additionalFields": {
+          "perPage": 50
+        }
+      },
+      "credentials": {
+        "wordpressApi": {
+          "id": "G1G8jDdEoWAVytQb",
+          "name": "Wordpress  - anya@emp0.com"
+        }
+      }
+    },
+    {
+      "id": "seo-gatekeeper-code-1",
+      "name": "SEO Gatekeeper Check",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2060,
+        1800
+      ],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const item = $input.item.json;\nconst text = item.blog_article || \"\";\nconst mainKeyword = item.main_keyword || \"\";\n\nfunction countOccurrences(str, sub) {\n  if (!str || !sub) return 0;\n  return (str.toLowerCase().match(new RegExp(sub.toLowerCase(), 'g')) || []).length;\n}\n\nconst length = text.split(/\\s+/).length;\nconst keywordCount = countOccurrences(text, mainKeyword);\nconst keywordDensity = length > 0 ? (keywordCount / length) * 100 : 0;\n\nitem._seo_gate = {\n  length,\n  keywordCount,\n  keywordDensity\n};\n\n// Simple pass/fail flags\nitem._seo_gate.needsRewrite = false;\n\nif (length < 800) item._seo_gate.needsRewrite = true;\nif (keywordDensity < 0.3 || keywordDensity > 2.0) item._seo_gate.needsRewrite = true;\n\nreturn {\n  json: item\n};"
+      }
+    },
+    {
+      "id": "seo-audit-schedule-1",
+      "name": "SEO Audit Schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -800,
+        3200
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 24
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "seo-audit-mongo-1",
+      "name": "MongoDB SEO Audit",
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -620,
+        3200
+      ],
+      "parameters": {
+        "collection": "blog",
+        "query": "{\"completed_step\": {\"$gte\": 7}}",
+        "options": {
+          "limit": 10
+        }
+      },
+      "credentials": {
+        "mongoDb": {
+          "id": "TwJB8fMcekPw13qA",
+          "name": "MongoDB account - jharilela@gmail.com"
+        }
+      }
+    },
+    {
+      "id": "seo-audit-http-html-1",
+      "name": "HTTP HTML Audit",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -420,
+        3200
+      ],
+      "parameters": {
+        "url": "={{ $json.post_url }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "seo-audit-html-parser-1",
+      "name": "HTML Parse Audit",
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        -220,
+        3200
+      ],
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "extractionValues": {
+          "values": [
+            {
+              "key": "title",
+              "cssSelector": "title"
+            },
+            {
+              "key": "h1",
+              "cssSelector": "h1"
+            },
+            {
+              "key": "meta_desc",
+              "cssSelector": "meta[name='description']"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "seo-audit-onpage-code-1",
+      "name": "SEO Onpage Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -20,
+        3200
+      ],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const item = $input.item.json;\n\nconst audit = item.seo_audit || {};\naudit.onpage = audit.onpage || {};\n\naudit.onpage.title = item.title || null;\naudit.onpage.h1 = item.h1 || null;\naudit.onpage.meta_desc = item.meta_desc || null;\n\naudit.onpage.checked_at = new Date().toISOString();\n\nitem.seo_audit = audit;\n\nreturn { json: item };"
+      }
+    },
+    {
+      "id": "seo-audit-save-1",
+      "name": "MongoDB Save SEO Audit",
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        180,
+        3200
+      ],
+      "parameters": {
+        "collection": "blog",
+        "operation": "update",
+        "updateKey": "_id",
+        "fields": "seo_audit",
+        "options": {}
+      },
+      "credentials": {
+        "mongoDb": {
+          "id": "TwJB8fMcekPw13qA",
+          "name": "MongoDB account - jharilela@gmail.com"
+        }
+      }
     }
   ],
   "pinData": {},
@@ -1636,7 +1810,7 @@
       "main": [
         [
           {
-            "node": "MongoDB",
+            "node": "Code Topic Defaults",
             "type": "main",
             "index": 0
           }
@@ -1838,7 +2012,7 @@
       "main": [
         [
           {
-            "node": "AI Agent2",
+            "node": "Wordpress Get Posts",
             "type": "main",
             "index": 0
           }
@@ -1860,7 +2034,7 @@
       "main": [
         [
           {
-            "node": "AI Agent7",
+            "node": "SEO Gatekeeper Check",
             "type": "main",
             "index": 0
           }
@@ -2418,6 +2592,94 @@
           {
             "node": "AI Agent5",
             "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code Topic Defaults": {
+      "main": [
+        [
+          {
+            "node": "MongoDB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wordpress Get Posts": {
+      "main": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SEO Gatekeeper Check": {
+      "main": [
+        [
+          {
+            "node": "AI Agent7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SEO Audit Schedule": {
+      "main": [
+        [
+          {
+            "node": "MongoDB SEO Audit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB SEO Audit": {
+      "main": [
+        [
+          {
+            "node": "HTTP HTML Audit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP HTML Audit": {
+      "main": [
+        [
+          {
+            "node": "HTML Parse Audit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML Parse Audit": {
+      "main": [
+        [
+          {
+            "node": "SEO Onpage Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SEO Onpage Summary": {
+      "main": [
+        [
+          {
+            "node": "MongoDB Save SEO Audit",
+            "type": "main",
             "index": 0
           }
         ]
