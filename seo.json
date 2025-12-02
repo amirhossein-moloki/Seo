@@ -493,8 +493,8 @@
         -260,
         1860
       ],
-      "parameters": {
-        "jsonSchemaExample": "{\n  \"titles\": [\n    \"Why AI Code Review Will Replace Junior Engineers\",\n    \"How AI is Reshaping Software QA in 2025\",\n    \"What CriticGPT Means for Developer Workflows\",\n    \"The Future of Code Reviews: AI vs Human Engineers\",\n    \"5 Benefits of Using AI for Code Quality Control\"\n  ],\n  \"core_topic\" : \"AI software engineers\"\n}"
+        "parameters": {
+        "jsonSchemaExample": "{\n  \"output\": [\n    {\n      \"title\": \"Agentic AI Workflows for Product Teams\",\n      \"main_keyword\": \"agentic ai workflows\",\n      \"related_keywords\": [\"autonomous agents\", \"product automation\", \"workflow orchestration\"],\n      \"tone\": \"analytical\",\n      \"link_articles\": [\"https://example.com/article-1\", \"https://example.com/article-2\"],\n      \"intent\": \"informational\",\n      \"primary_entity\": \"agentic ai\",\n      \"cluster_id\": \"agentic-ai/workflows\",\n      \"topic_fingerprint\": \"agentic-ai-workflows\",\n      \"refresh_schedule_days\": 60,\n      \"publish_target\": \"new_post\"\n    }\n  ]\n}"
       },
       "typeVersion": 1.2
     },
@@ -901,7 +901,7 @@
         1640
       ],
       "parameters": {
-        "jsCode": "let blog_article = $('AI Agent6').first().json.output\nblog_article = blog_article\n  .replace(/```markdown\\n?/g, '')   // remove opening ```markdown\n  .replace(/```/g, '')              // remove closing ```\n  .trim();\n\n// Step 2: Escape backslashes and double quotes\nblog_article = blog_article\n  .replace(/\\\\/g, '\\\\\\\\')           // escape backslashes\n  .replace(/\"/g, '\\\\\"');        \n\nreturn {\n    _id : $('Code7').first().json._id,\n    blog_article: blog_article,\n    completed_step : 6\n  }\n"
+        "jsCode": "const metadata = $('MongoDB3').item.json || {};\n\nlet blog_article = $('AI Agent6').first().json.output;\nblog_article = blog_article\n  .replace(/```markdown\\n?/g, '')   // remove opening ```markdown\n  .replace(/```/g, '')              // remove closing ```\n  .trim();\n\n// Step 2: Escape backslashes and double quotes\nblog_article = blog_article\n  .replace(/\\\\/g, '\\\\\\\\')           // escape backslashes\n  .replace(/\"/g, '\\\\\"');        \n\nreturn {\n    _id : $('Code7').first().json._id,\n    blog_article: blog_article,\n    main_keyword: metadata.main_keyword ?? null,\n    completed_step : 6\n  }\n"
       },
       "notesInFlow": true,
       "typeVersion": 2
@@ -1010,8 +1010,8 @@
         2380,
         1840
       ],
-      "parameters": {
-        "jsonSchemaExample": "{\n  \"meta_title\": \"Why AI Code Review Tools Matter\",\n  \"meta_description\": \"Explore how AI is reshaping code reviews and what it means for developers.\",\n  \"image_alt_text\": \"AI reviewing code on a laptop screen\",\n  \"slug\": \"ai-code-review-tools\",\n  \"seo_report\": {\n    \"keyword_density\": \"2.8%\",\n    \"passive_voice_count\": 4,\n    \"flesch_score\": 62.5\n  }\n}"
+        "parameters": {
+        "jsonSchemaExample": "{\n  \"meta_title\": \"AI Agents for Marketing: Practical Playbook\",\n  \"meta_description\": \"Learn how to deploy AI agents for marketing campaigns with examples, prompts, and governance tips.\",\n  \"image_alt_text\": \"Marketer collaborating with an AI assistant on a laptop\",\n  \"slug\": \"ai-agents-for-marketing-playbook\",\n  \"og_title\": \"AI Agents for Marketing: Practical Playbook\",\n  \"og_description\": \"Step-by-step guide to using AI agents in marketing with prompts, workflows, and safeguards.\",\n  \"twitter_title\": \"AI Agents for Marketing: Practical Playbook\",\n  \"twitter_description\": \"Actionable prompts and workflows for deploying AI agents in marketing.\",\n  \"schema\": {\n    \"@context\": \"https://schema.org\",\n    \"@type\": \"Article\",\n    \"headline\": \"AI Agents for Marketing: Practical Playbook\",\n    \"mainEntityOfPage\": \"https://articles.emp0.com/ai-agents-for-marketing-playbook\"\n  }\n}"
       },
       "typeVersion": 1.2
     },
@@ -1323,7 +1323,7 @@
         2420
       ],
       "parameters": {
-        "fields": "completed_step, blog_status, blog_link",
+        "fields": "completed_step, blog_status, blog_link, post_url",
         "options": {},
         "operation": "update",
         "updateKey": "_id",
@@ -1346,7 +1346,7 @@
         2420
       ],
       "parameters": {
-        "jsCode": "return { \n  \"_id\" : $('MongoDB8').first().json._id,\n  \"blog_status\": \"Publish\",\n  \"blog_link\" : $('Wordpress1').first().json.link, \n  completed_step : 9\n};\n"
+        "jsCode": "const blogLink = $('Wordpress1').first().json.link;\n\nreturn { \n  \"_id\" : $('MongoDB8').first().json._id,\n  \"blog_status\": \"Publish\",\n  \"blog_link\" : blogLink,\n  \"post_url\": blogLink,\n  completed_step : 9\n};\n"
       },
       "typeVersion": 2
     },
@@ -1676,7 +1676,30 @@
       ],
       "parameters": {
         "mode": "runOnceForEachItem",
-        "jsCode": "const item = $input.item.json;\nconst text = item.blog_article || \"\";\nconst mainKeyword = item.main_keyword || \"\";\n\nfunction countOccurrences(str, sub) {\n  if (!str || !sub) return 0;\n  return (str.toLowerCase().match(new RegExp(sub.toLowerCase(), 'g')) || []).length;\n}\n\nconst length = text.split(/\\s+/).length;\nconst keywordCount = countOccurrences(text, mainKeyword);\nconst keywordDensity = length > 0 ? (keywordCount / length) * 100 : 0;\n\nitem._seo_gate = {\n  length,\n  keywordCount,\n  keywordDensity\n};\n\n// Simple pass/fail flags\nitem._seo_gate.needsRewrite = false;\n\nif (length < 800) item._seo_gate.needsRewrite = true;\nif (keywordDensity < 0.3 || keywordDensity > 2.0) item._seo_gate.needsRewrite = true;\n\nreturn {\n  json: item\n};"
+        "jsCode": "const item = $input.item.json;\nconst sourceMeta = $items('MongoDB3', 0)[$itemIndex]?.json || {};\nconst rawArticle = $items('AI Agent6', 0)[$itemIndex]?.json?.output ?? item.blog_article ?? \"\";\nconst mainKeyword = item.main_keyword ?? sourceMeta.main_keyword ?? \"\";\n\nfunction cleanMarkdown(text) {\n  return text\n    .replace(/```markdown\\n?/g, '')\n    .replace(/```/g, '')\n    .trim();\n}\n\nfunction countOccurrences(str, sub) {\n  if (!str || !sub) return 0;\n  return (str.toLowerCase().match(new RegExp(sub.toLowerCase(), 'g')) || []).length;\n}\n\nconst text = cleanMarkdown(rawArticle).replace(/\\\\/g, '\\');\nconst length = text.split(/\\s+/).filter(Boolean).length;\nconst keywordCount = countOccurrences(text, mainKeyword);\nconst keywordDensity = length > 0 ? (keywordCount / length) * 100 : 0;\n\nitem.main_keyword = mainKeyword;\nitem._seo_gate = {\n  length,\n  keywordCount,\n  keywordDensity\n};\n\n// Simple pass/fail flags\nitem._seo_gate.needsRewrite = false;\n\nif (length < 800) item._seo_gate.needsRewrite = true;\nif (keywordDensity < 0.3 || keywordDensity > 2.0) item._seo_gate.needsRewrite = true;\n\nitem.seo_audit = item.seo_audit || {};\nitem.seo_audit.gate = item._seo_gate;\n\nreturn { json: item };"
+      }
+    },
+    {
+      "id": "mongo-save-gate-1",
+      "name": "MongoDB Save SEO Gate",
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        2260,
+        1940
+      ],
+      "parameters": {
+        "fields": "seo_audit",
+        "options": {},
+        "operation": "update",
+        "updateKey": "_id",
+        "collection": "blog"
+      },
+      "credentials": {
+        "mongoDb": {
+          "id": "TwJB8fMcekPw13qA",
+          "name": "MongoDB account - jharilela@gmail.com"
+        }
       }
     },
     {
@@ -1710,7 +1733,7 @@
       ],
       "parameters": {
         "collection": "blog",
-        "query": "{\"completed_step\": {\"$gte\": 7}}",
+        "query": "{\"completed_step\": {\"$gte\": 9}, \"blog_link\": {\"$exists\": true, \"$ne\": null}}",
         "options": {
           "limit": 10
         }
@@ -1732,7 +1755,7 @@
         3200
       ],
       "parameters": {
-        "url": "={{ $json.post_url }}",
+        "url": "={{ $json.post_url || $json.blog_link }}",
         "options": {}
       }
     },
@@ -1767,6 +1790,20 @@
       }
     },
     {
+      "id": "seo-audit-restore-context-1",
+      "name": "SEO Audit Restore Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -120,
+        3200
+      ],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const parsed = $input.item.json || {};\nconst sourceItems = $items(\"MongoDB SEO Audit\", 0);\nconst source = sourceItems[$itemIndex]?.json || {};\n\nconst merged = {\n  ...parsed,\n  _id: source._id,\n  post_url: source.post_url ?? source.blog_link ?? parsed.post_url ?? parsed.blog_link ?? null,\n  blog_link: source.blog_link ?? parsed.blog_link ?? null,\n  seo_audit: source.seo_audit ?? {}\n};\n\nreturn { json: merged };"
+      }
+    },
+    {
       "id": "seo-audit-onpage-code-1",
       "name": "SEO Onpage Summary",
       "type": "n8n-nodes-base.code",
@@ -1777,7 +1814,7 @@
       ],
       "parameters": {
         "mode": "runOnceForEachItem",
-        "jsCode": "const item = $input.item.json;\n\nconst audit = item.seo_audit || {};\naudit.onpage = audit.onpage || {};\n\naudit.onpage.title = item.title || null;\naudit.onpage.h1 = item.h1 || null;\naudit.onpage.meta_desc = item.meta_desc || null;\n\naudit.onpage.checked_at = new Date().toISOString();\n\nitem.seo_audit = audit;\n\nreturn { json: item };"
+        "jsCode": "const item = $input.item.json;\n\nconst pickValue = (value) => {\n  if (Array.isArray(value)) return value[0] ?? null;\n  return value ?? null;\n};\n\nconst audit = item.seo_audit || {};\naudit.onpage = audit.onpage || {};\n\naudit.onpage.title = pickValue(item.title);\naudit.onpage.h1 = pickValue(item.h1);\naudit.onpage.meta_desc = pickValue(item.meta_desc);\n\naudit.onpage.checked_at = new Date().toISOString();\n\nitem.seo_audit = audit;\n\nreturn { json: item };"
       }
     },
     {
@@ -2619,17 +2656,22 @@
         ]
       ]
     },
-    "SEO Gatekeeper Check": {
-      "main": [
-        [
-          {
-            "node": "AI Agent7",
-            "type": "main",
-            "index": 0
-          }
+      "SEO Gatekeeper Check": {
+        "main": [
+          [
+            {
+              "node": "AI Agent7",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "MongoDB Save SEO Gate",
+              "type": "main",
+              "index": 0
+            }
+          ]
         ]
-      ]
-    },
+      },
     "SEO Audit Schedule": {
       "main": [
         [
@@ -2652,33 +2694,44 @@
         ]
       ]
     },
-    "HTTP HTML Audit": {
-      "main": [
-        [
-          {
-            "node": "HTML Parse Audit",
+      "HTTP HTML Audit": {
+        "main": [
+          [
+            {
+              "node": "HTML Parse Audit",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "HTML Parse Audit": {
-      "main": [
-        [
-          {
-            "node": "SEO Onpage Summary",
-            "type": "main",
-            "index": 0
-          }
+      "HTML Parse Audit": {
+        "main": [
+          [
+            {
+              "node": "SEO Audit Restore Context",
+              "type": "main",
+              "index": 0
+            }
+          ]
         ]
-      ]
-    },
-    "SEO Onpage Summary": {
-      "main": [
-        [
-          {
-            "node": "MongoDB Save SEO Audit",
+      },
+      "SEO Audit Restore Context": {
+        "main": [
+          [
+            {
+              "node": "SEO Onpage Summary",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "SEO Onpage Summary": {
+        "main": [
+          [
+            {
+              "node": "MongoDB Save SEO Audit",
             "type": "main",
             "index": 0
           }
