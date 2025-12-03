@@ -31,13 +31,13 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://atom-game.ir/api/token/",
+        "url": "https://atom-game.ir/api/users/auth/admin-login/",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ { \"username\": \"amir\", \"password\": \"@mir1385514\" } }}",
         "options": {}
       },
-      "name": "Get API Token",
+      "name": "Auth Tokens",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -235,7 +235,16 @@
     {
       "parameters": {
         "url": "https://atom-game.ir/api/blog/posts/",
-        "options": {}
+        "options": {
+          "headerParametersUi": {
+            "parameter": [
+              {
+                "name": "Authorization",
+                "value": "={{$node[\"Auth Header\"].json.authorization}}"
+              }
+            ]
+          }
+        }
       },
       "name": "Get Recent Posts",
       "type": "n8n-nodes-base.httpRequest",
@@ -369,7 +378,16 @@
     {
       "parameters": {
         "url": "https://atom-game.ir/api/blog/categories/",
-        "options": {}
+        "options": {
+          "headerParametersUi": {
+            "parameter": [
+              {
+                "name": "Authorization",
+                "value": "={{$node[\"Auth Header\"].json.authorization}}"
+              }
+            ]
+          }
+        }
       },
       "name": "Get Categories",
       "type": "n8n-nodes-base.httpRequest",
@@ -421,7 +439,16 @@
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ { \"slug\": $json.category_slug, \"name\": $json.category_name, \"parent\": 0 } }}",
-        "options": {}
+        "options": {
+          "headerParametersUi": {
+            "parameter": [
+              {
+                "name": "Authorization",
+                "value": "={{$node[\"Auth Header\"].json.authorization}}"
+              }
+            ]
+          }
+        }
       },
       "name": "Create Category",
       "type": "n8n-nodes-base.httpRequest",
@@ -472,7 +499,16 @@
     {
       "parameters": {
         "url": "https://atom-game.ir/api/blog/tags/",
-        "options": {}
+        "options": {
+          "headerParametersUi": {
+            "parameter": [
+              {
+                "name": "Authorization",
+                "value": "={{$node[\"Auth Header\"].json.authorization}}"
+              }
+            ]
+          }
+        }
       },
       "name": "Get Tags",
       "type": "n8n-nodes-base.httpRequest",
@@ -523,7 +559,16 @@
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ { \"slug\": $json.slug, \"name\": $json.name } }}",
-        "options": {}
+        "options": {
+          "headerParametersUi": {
+            "parameter": [
+              {
+                "name": "Authorization",
+                "value": "={{$node[\"Auth Header\"].json.authorization}}"
+              }
+            ]
+          }
+        }
       },
       "name": "Create Tag",
       "type": "n8n-nodes-base.httpRequest",
@@ -587,7 +632,16 @@
     {
       "parameters": {
         "url": "https://atom-game.ir/api/blog/series/",
-        "options": {}
+        "options": {
+          "headerParametersUi": {
+            "parameter": [
+              {
+                "name": "Authorization",
+                "value": "={{$node[\"Auth Header\"].json.authorization}}"
+              }
+            ]
+          }
+        }
       },
       "name": "Get Series",
       "type": "n8n-nodes-base.httpRequest",
@@ -638,7 +692,16 @@
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ { \"slug\": $json.series_slug, \"title\": $json.series_title, \"description\": \"\", \"order_strategy\": \"manual\" } }}",
-        "options": {}
+        "options": {
+          "headerParametersUi": {
+            "parameter": [
+              {
+                "name": "Authorization",
+                "value": "={{$node[\"Auth Header\"].json.authorization}}"
+              }
+            ]
+          }
+        }
       },
       "name": "Create Series",
       "type": "n8n-nodes-base.httpRequest",
@@ -688,7 +751,7 @@
     },
     {
       "parameters": {
-        "functionCode": "const meta = $items('Clean URLs & Enhance Content')[0].json;          // نسخه V8: بعد از تمیزکاری لینک‌ها و تشخیص زبان\nconst categoryInfo = $items('Final Category')[0].json;\nconst seriesInfo = $items('Final Series')[0].json;\nconst tagInfo = $items('Collect Tag IDs')[0].json;\nconst chosenWrapper = $items('Pick Chosen Article')[0].json;\nconst chosenArticle = chosenWrapper.chosen_article || null;\nconst imageInfo = $items('Extract Image URLs')[0].json || {};\n\nconst langItem = $items('Clean URLs & Enhance Content')[0].json || {};\nconst lang = langItem.lang || 'fa';\n\nfunction slugify(str) {\n  return String(str || 'post')\n    .trim()\n    .toLowerCase()\n    .replace(/[آاآإءئؤة]/g, 'a')\n    .replace(/[^a-z0-9]+/g, '-')\n    .replace(/^-+|-+$/g, '');\n}\n\nconst title = meta.title || 'خلاصه مهم‌ترین خبرهای بازی امروز';\nconst slug = slugify(title);\n\nconst mainImage = imageInfo.mainImage || '';\n\nfunction buildContent() {\n  const base = meta.summary_markdown || '';\n  if (!mainImage) return base;\n\n  const alt =\n    meta.seo_title ||\n    meta.title ||\n    (chosenArticle && chosenArticle.title) ||\n    'تصویر مقاله';\n\n  const imgMarkdown = `![${alt}](${mainImage})\\n\\n`;\n  return imgMarkdown + base;\n}\n\nconst body = {\n  title,\n  excerpt: meta.excerpt || '',\n  content: buildContent(),\n  status: 'draft',\n  visibility: 'public',\n  seo_title: meta.seo_title || title,\n  seo_description: meta.seo_description || (meta.excerpt || ''),\n  slug,\n  canonical_url: `https://atom-game.ir/blog/${slug}/`,\n  language: lang\n};\n\nif (categoryInfo && categoryInfo.category_id != null) {\n  body.category_id = categoryInfo.category_id;\n}\n\nif (seriesInfo && seriesInfo.series_id != null) {\n  body.series = seriesInfo.series_id;\n}\n\nif (tagInfo && Array.isArray(tagInfo.tag_ids) && tagInfo.tag_ids.length > 0) {\n  body.tag_ids = tagInfo.tag_ids;\n}\n\nif (mainImage) {\n  body.main_image_url = mainImage;\n}\nif (chosenArticle && chosenArticle.link) {\n  body.source_url = chosenArticle.link;\n}\n\nreturn [{ json: body }];\n"
+        "functionCode": "const meta = $items('Clean URLs & Enhance Content')[0].json;          // نسخه V8: بعد از تمیزکاری لینک‌ها و تشخیص زبان\nconst categoryInfo = $items('Final Category')[0].json;\nconst seriesInfo = $items('Final Series')[0].json;\nconst tagInfo = $items('Collect Tag IDs')[0].json;\nconst chosenWrapper = $items('Pick Chosen Article')[0].json;\nconst chosenArticle = chosenWrapper.chosen_article || null;\nconst imageInfo = $items('Extract Image URLs')[0].json || {};\nconst mediaInfo = $items('Collect Media Results')[0]?.json || {};\nconst mediaIds = mediaInfo.mediaIds || [];\nconst mediaUrls = mediaInfo.mediaUrls || [];\n\nconst langItem = $items('Clean URLs & Enhance Content')[0].json || {};\nconst lang = langItem.lang || 'fa';\n\nfunction slugify(str) {\n  return String(str || 'post')\n    .trim()\n    .toLowerCase()\n    .replace(/[آاآإءئؤة]/g, 'a')\n    .replace(/[^a-z0-9]+/g, '-')\n    .replace(/^-+|-+$/g, '');\n}\n\nconst title = meta.title || 'خلاصه مهم‌ترین خبرهای بازی امروز';\nconst slug = slugify(title);\n\nconst mainImage = imageInfo.mainImage || '';\n\nfunction buildContent() {\n  const base = meta.summary_markdown || '';\n  return base;\n}\n\nconst body = {\n  title,\n  excerpt: meta.excerpt || '',\n  content: buildContent(),\n  status: 'draft',\n  visibility: 'public',\n  seo_title: meta.seo_title || title,\n  seo_description: meta.seo_description || (meta.excerpt || ''),\n  slug,\n  canonical_url: `https://atom-game.ir/blog/${slug}/`,\n  language: lang\n};\n\nif (categoryInfo && categoryInfo.category_id != null) {\n  body.category_id = categoryInfo.category_id;\n}\n\nif (seriesInfo && seriesInfo.series_id != null) {\n  body.series = seriesInfo.series_id;\n}\n\nif (tagInfo && Array.isArray(tagInfo.tag_ids) && tagInfo.tag_ids.length > 0) {\n  body.tag_ids = tagInfo.tag_ids;\n}\n\n// استفاده از اولین مدیا به عنوان کاور\nif (mediaIds.length > 0) {\n  body.cover_media = mediaIds[0]; // اگر فیلد بک‌اند شما cover_media_id است، همین را به آن تغییر بده\n}\n\n// اضافه کردن همه تصاویر داخلی به انتهای محتوا به صورت markdown\nif (Array.isArray(mediaUrls) && mediaUrls.length > 0) {\n  const imagesMd = mediaUrls.map(u => `![](${u})`).join('\\n\\n');\n  body.content = (body.content || '') + '\\n\\n' + imagesMd;\n}\n\n// به صورت fallback اگر مدیا نداشتیم و mainImage خارجی هست:\nif (!body.cover_media && imageInfo.mainImage) {\n  body.main_image_url = imageInfo.mainImage;\n}\n\nif (chosenArticle && chosenArticle.link) {\n  body.source_url = chosenArticle.link;\n}\n\nreturn [{ json: body }];\n"
       },
       "name": "Build Blog Post Payload",
       "type": "n8n-nodes-base.function",
@@ -705,7 +768,16 @@
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{$json}}",
-        "options": {}
+        "options": {
+          "headerParametersUi": {
+            "parameter": [
+              {
+                "name": "Authorization",
+                "value": "={{$node[\"Auth Header\"].json.authorization}}"
+              }
+            ]
+          }
+        }
       },
       "name": "Create Blog Post",
       "type": "n8n-nodes-base.httpRequest",
@@ -770,6 +842,182 @@
       ],
       "id": "8c7c9ab8-8d96-443c-9dd7-72b1917126b7",
       "webhookId": "137e69ab-b2b0-4b85-b32d-389ec022d6b1"
+    },
+    {
+      "parameters": {
+        "functionCode": "return [{\n  json: {\n    authorization: `Bearer ${$node[\"Auth Tokens\"].json.access}`\n  }\n}];\n"
+      },
+      "name": "Auth Header",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        -3872,
+        -232
+      ],
+      "id": "a2cff8b5-a012-4228-8c2f-3e53169d07f1"
+    },
+    {
+      "parameters": {
+        "operation": "splitOutItems",
+        "fieldToSplitOut": "allImages"
+      },
+      "name": "Split Out Images",
+      "type": "n8n-nodes-base.itemLists",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        -784
+      ],
+      "id": "233ee09f-db1f-4fe7-a8dc-562a56e6d918"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{$json.allImages}}",
+        "responseFormat": "file",
+        "dataPropertyName": "image"
+      },
+      "name": "Download Image",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        176,
+        -784
+      ],
+      "id": "95088459-42b4-481a-b794-3e16ecabbb79"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://atom-game.ir/api/blog/media/",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "sendBinaryData": true,
+        "binaryPropertyName": "image",
+        "options": {
+          "headerParametersUi": {
+            "parameter": [
+              {
+                "name": "Authorization",
+                "value": "={{$node[\"Auth Header\"].json.authorization}}"
+              }
+            ]
+          }
+        }
+      },
+      "name": "Create Media",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        384,
+        -784
+      ],
+      "id": "cd221a35-d4cf-43a7-bcbf-3c5af8538ecc"
+    },
+    {
+      "parameters": {
+        "functionCode": "const mediaIds = [];\nconst mediaUrls = [];\n\nfor (const item of items) {\n  const j = item.json || {};\n  if (j.id != null) mediaIds.push(j.id);\n\n  const url = j.url || j.file || j.file_url || j.original || j.download_url;\n  if (url) mediaUrls.push(url);\n}\n\nreturn [{\n  json: { mediaIds, mediaUrls }\n}];\n"
+      },
+      "name": "Collect Media Results",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        592,
+        -784
+      ],
+      "id": "dbd8fb7c-2836-4341-8f63-7bda2ea47f7f"
+    },
+    {
+      "parameters": {
+        "functionCode": "const item = items[0];\nitem.json.attempt = item.json.attempt ?? 1;\nitem.json.max_attempts = item.json.max_attempts ?? 3;\nreturn [item];\n"
+      },
+      "name": "Init Loop State",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        896,
+        -976
+      ],
+      "id": "c9111817-ecb9-4947-9ed8-dd68facb444c"
+    },
+    {
+      "parameters": {
+        "functionCode": "const item = items[0];\nitem.json.review = {\n  pass: item.json.pass ?? true,\n  score: item.json.score ?? 0.9,\n  issues: item.json.issues ?? [],\n  rewrite_instructions: item.json.rewrite_instructions || \"Improve content for clarity and SEO.\"\n};\nreturn [item];\n"
+      },
+      "name": "AI Review",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        -976
+      ],
+      "id": "a2f3230e-f31b-4f01-9f99-56e8b9fa76da"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json.review.pass}}"
+            }
+          ]
+        }
+      },
+      "name": "IF Review Passed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1344,
+        -976
+      ],
+      "id": "9d1a60c3-9ab4-4f89-866b-2d3182e5702d"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$json.attempt}}",
+              "operation": "smaller",
+              "value2": "={{$json.max_attempts}}"
+            }
+          ]
+        }
+      },
+      "name": "Check Attempts Left",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1344,
+        -816
+      ],
+      "id": "ad68d51e-0f8e-49f3-88a9-7eeb4a5fee42"
+    },
+    {
+      "parameters": {
+        "functionCode": "const item = items[0];\nconst instr = item.json.review?.rewrite_instructions || '';\n\nitem.json.rewrite = {\n  payload: {\n    ...item.json,\n    content: (item.json.content || '') + `\\n\\n---\\n[AI Rewrite]\\n${instr}`\n  }\n};\n\nreturn [item];\n"
+      },
+      "name": "AI Rewrite",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        1568,
+        -816
+      ],
+      "id": "890459d4-2ef9-4153-afef-a51349a4b6fa"
+    },
+    {
+      "parameters": {
+        "functionCode": "const item = items[0];\nconst newPayload = item.json.rewrite?.payload;\n\nif (newPayload) {\n  const attempt = item.json.attempt;\n  const max_attempts = item.json.max_attempts;\n\n  item.json = {\n    ...newPayload,\n    attempt: attempt + 1,\n    max_attempts\n  };\n\n  delete item.json.review;\n  delete item.json.rewrite;\n}\n\nreturn [item];\n"
+      },
+      "name": "Apply Rewritten Payload",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        1792,
+        -816
+      ],
+      "id": "05e1304c-cf0b-416a-b688-65a057534d41"
     }
   ],
   "pinData": {},
@@ -778,18 +1026,7 @@
       "main": [
         [
           {
-            "node": "Get API Token",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get API Token": {
-      "main": [
-        [
-          {
-            "node": "Send Initial Status",
+            "node": "Auth Tokens",
             "type": "main",
             "index": 0
           }
@@ -1305,7 +1542,7 @@
       "main": [
         [
           {
-            "node": "Create Blog Post",
+            "node": "Init Loop State",
             "type": "main",
             "index": 0
           }
@@ -1317,6 +1554,157 @@
         [
           {
             "node": "Update Final Status (Success)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auth Tokens": {
+      "main": [
+        [
+          {
+            "node": "Send Initial Status",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Auth Header",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Image URLs": {
+      "main": [
+        [
+          {
+            "node": "Split Out Images",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out Images": {
+      "main": [
+        [
+          {
+            "node": "Download Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Image": {
+      "main": [
+        [
+          {
+            "node": "Create Media",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Media": {
+      "main": [
+        [
+          {
+            "node": "Collect Media Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collect Media Results": {
+      "main": [
+        [
+          {
+            "node": "Build Blog Post Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Init Loop State": {
+      "main": [
+        [
+          {
+            "node": "AI Review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Review": {
+      "main": [
+        [
+          {
+            "node": "IF Review Passed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Review Passed?": {
+      "main": [
+        [
+          {
+            "node": "Create Blog Post",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Check Attempts Left",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Attempts Left": {
+      "main": [
+        [
+          {
+            "node": "AI Rewrite",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create Blog Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Rewrite": {
+      "main": [
+        [
+          {
+            "node": "Apply Rewritten Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apply Rewritten Payload": {
+      "main": [
+        [
+          {
+            "node": "AI Review",
             "type": "main",
             "index": 0
           }
