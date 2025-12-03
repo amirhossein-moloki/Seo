@@ -740,7 +740,7 @@
     },
     {
       "parameters": {
-        "functionCode": "const meta = $items('Clean URLs & Enhance Content')[0].json;          // نسخه V8: بعد از تمیزکاری لینک‌ها و تشخیص زبان\n            const categoryInfo = $items('Final Category')[0].json;\n            const seriesInfo = $items('Final Series')[0].json;\n            const tagInfo = $items('Collect Tag IDs')[0].json;\n            const chosenWrapper = $items('Pick Chosen Article')[0].json;\n            const chosenArticle = chosenWrapper.chosen_article || null;\n            const imageInfo = $items('Extract Image URLs')[0].json || {};\n            const mediaInfo = $items('Create Media')[0].json || {};\n\n            const langItem = $items('Clean URLs & Enhance Content')[0].json || {};\n            const lang = langItem.lang || 'fa';\n\n            function slugify(str) {\n              return String(str || 'post')\n                .trim()\n                .toLowerCase()\n                .replace(/[آاآإءئؤة]/g, 'a')\n                .replace(/[^a-z0-9]+/g, '-')\n                .replace(/^-+|-+$/g, '');\n            }\n\n            const title = meta.title || 'خلاصه مهم‌ترین خبرهای بازی امروز';\n            const slug = slugify(title);\n\n            const mainImage = imageInfo.mainImage || '';\n\n            function buildContent() {\n              const base = meta.summary_markdown || '';\n              if (!mainImage) return base;\n\n              const alt =\n                meta.seo_title ||\n                meta.title ||\n                (chosenArticle && chosenArticle.title) ||\n                'تصویر مقاله';\n\n              const imgMarkdown = `![${alt}](${mainImage})\n\n`;\n              return imgMarkdown + base;\n            }\n\n            const body = {\n              title,\n              excerpt: meta.excerpt || '',\n              content: buildContent(),\n              status: 'draft',\n              visibility: 'public',\n              seo_title: meta.seo_title || title,\n              seo_description: meta.seo_description || (meta.excerpt || ''),\n              slug,\n              canonical_url: `https://atom-game.ir/blog/${slug}/`,\n              language: lang\n            };\n\n            if (categoryInfo && categoryInfo.category_id != null) {\n              body.category_id = categoryInfo.category_id;\n            }\n\n            if (seriesInfo && seriesInfo.series_id != null) {\n              body.series = seriesInfo.series_id;\n            }\n\n            if (tagInfo && Array.isArray(tagInfo.tag_ids) && tagInfo.tag_ids.length > 0) {\n              body.tag_ids = tagInfo.tag_ids;\n            }\n\n            if (mediaInfo && mediaInfo.id != null) {\n              body.cover_media = mediaInfo.id;\n            }\n            if (chosenArticle && chosenArticle.link) {\n              body.source_url = chosenArticle.link;\n            }\n\n            return [{ json: body }];\n"
+        "functionCode": "const meta = $items('Clean URLs & Enhance Content')[0].json;          // نسخه V8: بعد از تمیزکاری لینک‌ها و تشخیص زبان\nconst categoryInfo = $items('Final Category')[0].json;\nconst seriesInfo = $items('Final Series')[0].json;\nconst tagInfo = $items('Collect Tag IDs')[0].json;\nconst chosenWrapper = $items('Pick Chosen Article')[0].json;\nconst chosenArticle = chosenWrapper.chosen_article || null;\nconst imageInfo = $items('Extract Image URLs')[0].json || {};\nconst mediaInfo = $items('Collect Media Results')[0]?.json || {};\nconst mediaIds = mediaInfo.mediaIds || [];\nconst mediaUrls = mediaInfo.mediaUrls || [];\n\nconst langItem = $items('Clean URLs & Enhance Content')[0].json || {};\nconst lang = langItem.lang || 'fa';\n\nfunction slugify(str) {\n  return String(str || 'post')\n    .trim()\n    .toLowerCase()\n    .replace(/[آاآإءئؤة]/g, 'a')\n    .replace(/[^a-z0-9]+/g, '-')\n    .replace(/^-+|-+$/g, '');\n}\n\nconst title = meta.title || 'خلاصه مهم‌ترین خبرهای بازی امروز';\nconst slug = slugify(title);\n\nconst mainImage = imageInfo.mainImage || '';\n\nconst body = {\n  title,\n  excerpt: meta.excerpt || '',\n  content: meta.summary_markdown || '',\n  status: 'draft',\n  visibility: 'public',\n  seo_title: meta.seo_title || title,\n  seo_description: meta.seo_description || (meta.excerpt || ''),\n  slug,\n  canonical_url: `https://atom-game.ir/blog/${slug}/`,\n  language: lang\n};\n\nif (categoryInfo && categoryInfo.category_id != null) {\n  body.category_id = categoryInfo.category_id;\n}\n\nif (seriesInfo && seriesInfo.series_id != null) {\n  body.series = seriesInfo.series_id;\n}\n\nif (tagInfo && Array.isArray(tagInfo.tag_ids) && tagInfo.tag_ids.length > 0) {\n  body.tag_ids = tagInfo.tag_ids;\n}\n\n// استفاده از اولین مدیا به عنوان کاور\nif (mediaIds.length > 0) {\n  body.cover_media = mediaIds[0];\n}\n\n// اضافه کردن همه تصاویر داخلی به انتهای محتوا به صورت markdown\nif (Array.isArray(mediaUrls) && mediaUrls.length > 0) {\n  const imagesMd = mediaUrls.map(u => `![](${u})`).join('\n\n');\n  body.content = (body.content || '') + '\n\n' + imagesMd;\n}\n\n// به صورت fallback اگر مدیا نداشتیم و mainImage خارجی هست:\nif (!body.cover_media && mainImage) {\n  body.main_image_url = mainImage;\n}\n\nif (chosenArticle && chosenArticle.link) {\n  body.source_url = chosenArticle.link;\n}\n\nreturn [{ json: body }];\n"
       },
       "name": "Build Blog Post Payload",
       "type": "n8n-nodes-base.function",
@@ -861,16 +861,17 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "={{$json.mainImage}}",
+        "url": "={{$json.allImages}}",
         "responseFormat": "file",
         "binaryPropertyName": "image",
-        "options": {}
+        "options": {},
+        "dataPropertyName": "image"
       },
-      "name": "Download Main Image",
+      "name": "Download Image",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        -992,
+        -960,
         -784
       ],
       "id": "1a22b1c6-c4a1-433d-ad26-15712f2ab90f"
@@ -886,7 +887,8 @@
           "headers": {
             "Authorization": "={{$node[\"Auth Header\"].json.authorization}}"
           }
-        }
+        },
+        "sendBody": true
       },
       "name": "Create Media",
       "type": "n8n-nodes-base.httpRequest",
@@ -989,6 +991,34 @@
         -944
       ],
       "id": "96f739ff-cc4c-46bd-9640-4043fba326d9"
+    },
+    {
+      "id": "ffcf3774-8388-4d77-85f2-45e4b12b6a87",
+      "name": "Split Out Images",
+      "parameters": {
+        "fieldToSplitOut": "allImages",
+        "options": {},
+        "operation": "splitOutItems"
+      },
+      "position": [
+        -1184,
+        -784
+      ],
+      "type": "n8n-nodes-base.itemLists",
+      "typeVersion": 1
+    },
+    {
+      "id": "d628ad17-40eb-4dd1-89bf-e3b29b036876",
+      "name": "Collect Media Results",
+      "parameters": {
+        "functionCode": "const mediaIds = [];\nconst mediaUrls = [];\n\nfor (const item of items) {\n  const j = item.json || {};\n  if (j.id != null) mediaIds.push(j.id);\n\n  const url = j.url || j.file || j.file_url || j.original || j.download_url;\n  if (url) mediaUrls.push(url);\n}\n\nreturn [{\n  json: { mediaIds, mediaUrls }\n}];"
+      },
+      "position": [
+        -512,
+        -784
+      ],
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1
     }
   ],
   "pinData": {},
@@ -1547,20 +1577,9 @@
       "main": [
         [
           {
-            "node": "Download Main Image",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Download Main Image": {
-      "main": [
-        [
-          {
-            "node": "Create Media",
-            "type": "main",
-            "index": 0
+            "index": 0,
+            "node": "Split Out Images",
+            "type": "main"
           }
         ]
       ]
@@ -1569,9 +1588,9 @@
       "main": [
         [
           {
-            "node": "Build Blog Post Payload",
-            "type": "main",
-            "index": 0
+            "index": 0,
+            "node": "Collect Media Results",
+            "type": "main"
           }
         ]
       ]
@@ -1652,6 +1671,39 @@
             "node": "AI Review",
             "type": "main",
             "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out Images": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Download Image",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Download Image": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Create Media",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Collect Media Results": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Build Blog Post Payload",
+            "type": "main"
           }
         ]
       ]
