@@ -493,7 +493,7 @@
         -260,
         1860
       ],
-        "parameters": {
+      "parameters": {
         "jsonSchemaExample": "{\n  \"output\": [\n    {\n      \"title\": \"Agentic AI Workflows for Product Teams\",\n      \"main_keyword\": \"agentic ai workflows\",\n      \"related_keywords\": [\"autonomous agents\", \"product automation\", \"workflow orchestration\"],\n      \"tone\": \"analytical\",\n      \"link_articles\": [\"https://example.com/article-1\", \"https://example.com/article-2\"],\n      \"intent\": \"informational\",\n      \"primary_entity\": \"agentic ai\",\n      \"cluster_id\": \"agentic-ai/workflows\",\n      \"topic_fingerprint\": \"agentic-ai-workflows\",\n      \"refresh_schedule_days\": 60,\n      \"publish_target\": \"new_post\"\n    }\n  ]\n}"
       },
       "typeVersion": 1.2
@@ -1010,7 +1010,7 @@
         2380,
         1840
       ],
-        "parameters": {
+      "parameters": {
         "jsonSchemaExample": "{\n  \"meta_title\": \"AI Agents for Marketing: Practical Playbook\",\n  \"meta_description\": \"Learn how to deploy AI agents for marketing campaigns with examples, prompts, and governance tips.\",\n  \"image_alt_text\": \"Marketer collaborating with an AI assistant on a laptop\",\n  \"slug\": \"ai-agents-for-marketing-playbook\",\n  \"og_title\": \"AI Agents for Marketing: Practical Playbook\",\n  \"og_description\": \"Step-by-step guide to using AI agents in marketing with prompts, workflows, and safeguards.\",\n  \"twitter_title\": \"AI Agents for Marketing: Practical Playbook\",\n  \"twitter_description\": \"Actionable prompts and workflows for deploying AI agents in marketing.\",\n  \"schema\": {\n    \"@context\": \"https://schema.org\",\n    \"@type\": \"Article\",\n    \"headline\": \"AI Agents for Marketing: Practical Playbook\",\n    \"mainEntityOfPage\": \"https://articles.emp0.com/ai-agents-for-marketing-playbook\"\n  }\n}"
       },
       "typeVersion": 1.2
@@ -1119,152 +1119,15 @@
       "typeVersion": 1.3
     },
     {
-      "id": "fae23884-28f9-454d-a9a0-78efe85d2f24",
-      "name": "Wordpress1",
-      "type": "n8n-nodes-base.wordpress",
-      "position": [
-        1580,
-        2420
-      ],
-      "parameters": {
-        "title": "={{ $('MongoDB8').first().json.blog_title }}",
-        "additionalFields": {
-          "slug": "={{ $('MongoDB8').first().json.slug }}",
-          "status": "draft",
-          "sticky": false,
-          "content": "={{ $json.blog_html }}",
-          "authorId": 3,
-          "categories": [
-            8
-          ],
-          "postTemplate": {
-            "values": {}
-          },
-          "commentStatus": "closed"
-        }
-      },
-      "credentials": {
-        "wordpressApi": {
-          "id": "G1G8jDdEoWAVytQb",
-          "name": "Wordpress  - anya@emp0.com"
-        }
-      },
-      "typeVersion": 1
-    },
-    {
-      "id": "51780c90-ac3f-4960-a5d1-fb038119ec43",
-      "name": "Set Image",
-      "type": "n8n-nodes-base.httpRequest",
-      "position": [
-        1760,
-        2420
-      ],
-      "parameters": {
-        "url": "=https://articles.emp0.com/wp-json/wp/v2/posts/{{ $('Wordpress1').item.json.id }}",
-        "method": "POST",
-        "options": {},
-        "sendQuery": true,
-        "authentication": "predefinedCredentialType",
-        "queryParameters": {
-          "parameters": [
-            {
-              "name": "featured_media",
-              "value": "={{ $('Upload image2').item.json.id }}"
-            }
-          ]
-        },
-        "nodeCredentialType": "wordpressApi"
-      },
-      "credentials": {
-        "wordpressApi": {
-          "id": "G1G8jDdEoWAVytQb",
-          "name": "Wordpress  - anya@emp0.com"
-        }
-      },
-      "typeVersion": 4.2
-    },
-    {
-      "id": "d53f2502-4c15-45c3-a085-5c5d28cea827",
-      "name": "Upload image2",
-      "type": "n8n-nodes-base.httpRequest",
-      "position": [
-        860,
-        2420
-      ],
-      "parameters": {
-        "url": "https://articles.emp0.com/wp-json/wp/v2/media",
-        "method": "POST",
-        "options": {},
-        "sendBody": true,
-        "contentType": "binaryData",
-        "sendHeaders": true,
-        "authentication": "predefinedCredentialType",
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Disposition",
-              "value": "=attachment; filename=\"img-{{ $('MongoDB8').item.json.slug }}.jpg\""
-            }
-          ]
-        },
-        "inputDataFieldName": "data",
-        "nodeCredentialType": "wordpressApi"
-      },
-      "credentials": {
-        "wordpressApi": {
-          "id": "G1G8jDdEoWAVytQb",
-          "name": "Wordpress  - anya@emp0.com"
-        }
-      },
-      "retryOnFail": true,
-      "typeVersion": 4.2,
-      "waitBetweenTries": 5000
-    },
-    {
-      "id": "a37a09bb-f82d-462d-9e67-ee180097429b",
-      "name": "Set metatag1",
-      "type": "n8n-nodes-base.httpRequest",
-      "position": [
-        1940,
-        2420
-      ],
-      "parameters": {
-        "url": "=https://articles.emp0.com/wp-json/wp/v2/posts/{{ $('Wordpress1').item.json.id }}",
-        "method": "PUT",
-        "options": {},
-        "jsonBody": "={\n  \"meta\":{\n    \"_yoast_wpseo_title\":\"{{ $('MongoDB8').item.json.meta_title }}\",\n    \"_yoast_wpseo_metadesc\":\"{{ $('MongoDB8').item.json.meta_description }}\"\n  }\n}",
-        "sendBody": true,
-        "sendHeaders": true,
-        "specifyBody": "json",
-        "authentication": "predefinedCredentialType",
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "nodeCredentialType": "wordpressApi"
-      },
-      "credentials": {
-        "wordpressApi": {
-          "id": "G1G8jDdEoWAVytQb",
-          "name": "Wordpress  - anya@emp0.com"
-        }
-      },
-      "typeVersion": 4.2
-    },
-    {
       "id": "9363f64c-6494-419e-bc84-166f2013fc3c",
-      "name": "Code12",
+      "name": "Save Blog Image URL",
       "type": "n8n-nodes-base.code",
       "position": [
         1040,
         2420
       ],
       "parameters": {
-        "jsCode": "return { \n  \"_id\" : $('MongoDB8').first().json._id,\n  \"blog_image_url\": $input.first().json.source_url,\n  completed_step : 8\n};\n"
+        "jsCode": "return {\n  json: {\n    _id: $('MongoDB8').first().json._id,\n    blog_image_url: $json.url || $json.file || $('Extract Image URL').first().json.image_url,\n    completed_step: 8\n  }\n};"
       },
       "typeVersion": 2
     },
@@ -1292,29 +1155,6 @@
       "typeVersion": 1.2
     },
     {
-      "id": "d687a052-adf1-4a3d-be85-94f7b0e8f772",
-      "name": "Wordpress2",
-      "type": "n8n-nodes-base.wordpress",
-      "position": [
-        2160,
-        2420
-      ],
-      "parameters": {
-        "postId": "={{ $('Wordpress1').item.json.id }}",
-        "operation": "update",
-        "updateFields": {
-          "status": "publish"
-        }
-      },
-      "credentials": {
-        "wordpressApi": {
-          "id": "ROMzk4TNprbiDIjp",
-          "name": "wp - jay@emp0.com"
-        }
-      },
-      "typeVersion": 1
-    },
-    {
       "id": "9a90e900-ad8e-490f-bf3a-8788cca624d5",
       "name": "MongoDB16",
       "type": "n8n-nodes-base.mongoDb",
@@ -1339,14 +1179,14 @@
     },
     {
       "id": "3292cb3b-22c0-43aa-8860-e1b2bcea3280",
-      "name": "Code14",
+      "name": "Update Blog Record (Atom)",
       "type": "n8n-nodes-base.code",
       "position": [
         2360,
         2420
       ],
       "parameters": {
-        "jsCode": "const blogLink = $('Wordpress1').first().json.link;\n\nreturn { \n  \"_id\" : $('MongoDB8').first().json._id,\n  \"blog_status\": \"Publish\",\n  \"blog_link\" : blogLink,\n  \"post_url\": blogLink,\n  completed_step : 9\n};\n"
+        "jsCode": "const blog = $('MongoDB8').first().json;\nconst created = $('Atom Create Blog Post').first().json;\n\nconst slug = created.slug || blog.slug;\nconst BLOG_BASE_URL = 'https://YOUR_FRONTEND_BLOG_DOMAIN/posts/';\n\nreturn {\n  json: {\n    _id: blog._id,\n    blog_status: 'Publish',\n    blog_link: created.canonical_url || (BLOG_BASE_URL + slug),\n    post_url: created.canonical_url || (BLOG_BASE_URL + slug),\n    completed_step: 9\n  }\n};"
       },
       "typeVersion": 2
     },
@@ -1455,20 +1295,6 @@
         "amount": 1
       },
       "typeVersion": 1.1
-    },
-    {
-      "id": "928aaf73-65c1-4d21-85aa-abca6a723525",
-      "name": "HTTP Request3",
-      "type": "n8n-nodes-base.httpRequest",
-      "position": [
-        580,
-        2420
-      ],
-      "parameters": {
-        "url": "={{ $json.generations_by_pk.generated_images[0].url }}",
-        "options": {}
-      },
-      "typeVersion": 4.2
     },
     {
       "id": "ba31143c-c24a-40de-8fbb-b14976b91ec4",
@@ -1641,28 +1467,6 @@
       "parameters": {
         "mode": "runOnceForEachItem",
         "jsCode": "const item = $input.item.json;\n\n// Ensure important SEO fields exist with sane defaults\nitem.revision_loop_count = item.revision_loop_count ?? 0;\nitem.seo_audit = item.seo_audit ?? {};\nitem.wp_post_id = item.wp_post_id ?? null;\nitem.post_url = item.post_url ?? null;\nitem.published_at = item.published_at ?? null;\n\n// Normalize refresh schedule\nif (!item.refresh_schedule_days || item.refresh_schedule_days <= 0) {\n  item.refresh_schedule_days = 60;\n}\n\nitem.refresh_schedule = item.refresh_schedule ?? item.refresh_schedule_days;\nitem.last_refreshed_at = item.last_refreshed_at ?? null;\n\n// Make sure publish_target exists\nif (!item.publish_target) {\n  item.publish_target = \"new_post\";\n}\n\nreturn {\n  json: item\n};"
-      }
-    },
-    {
-      "id": "wordpress-get-posts-1",
-      "name": "Wordpress Get Posts",
-      "type": "n8n-nodes-base.wordpress",
-      "typeVersion": 1,
-      "position": [
-        -400,
-        1800
-      ],
-      "parameters": {
-        "operation": "getAll",
-        "additionalFields": {
-          "perPage": 50
-        }
-      },
-      "credentials": {
-        "wordpressApi": {
-          "id": "G1G8jDdEoWAVytQb",
-          "name": "Wordpress  - anya@emp0.com"
-        }
       }
     },
     {
@@ -1839,6 +1643,181 @@
           "name": "MongoDB account - jharilela@gmail.com"
         }
       }
+    },
+    {
+      "id": "372ea7ed-ae7d-4718-ac34-20cf8f70d60d",
+      "name": "Extract Image URL",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        580,
+        2420
+      ],
+      "parameters": {
+        "jsCode": "const url = $json.generations_by_pk?.generated_images?.[0]?.url;\n\nif (!url) {\n  throw new Error('Leonardo image URL not found in generations_by_pk.generated_images[0].url');\n}\n\nreturn {\n  json: {\n    image_url: url\n  }\n};"
+      },
+      "typeVersion": 2
+    },
+    {
+      "id": "ffd1d5f7-e8e7-419d-a805-fccef909cb84",
+      "name": "Atom Admin Login",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        760,
+        2420
+      ],
+      "parameters": {
+        "url": "https://YOUR_API_BASE/api/users/auth/admin-login/",
+        "method": "POST",
+        "options": {},
+        "sendBody": true,
+        "sendHeaders": true,
+        "specifyBody": "json",
+        "jsonBody": "=\\n{\\n  \"username\": \"YOUR_ADMIN_USERNAME\",\\n  \"password\": \"YOUR_ADMIN_PASSWORD\"\\n}\\n",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        }
+      },
+      "typeVersion": 4.2
+    },
+    {
+      "id": "fa0f8746-dc63-415a-b096-fdd3892fb922",
+      "name": "Atom Create Media",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        940,
+        2420
+      ],
+      "parameters": {
+        "url": "https://YOUR_API_BASE/api/blog/media/",
+        "method": "POST",
+        "options": {},
+        "sendBody": true,
+        "sendHeaders": true,
+        "specifyBody": "json",
+        "jsonBody": "={\\n  \\\"file\\\": \\\"={{ $('Extract Image URL').first().json.image_url }}\\\",\\n  \\\"alt_text\\\": \\\"={{ $('MongoDB8').item.json.image_alt_text }}\\\",\\n  \\\"title\\\": \\\"={{ $('MongoDB8').item.json.blog_title }}\\\"\\n}\\n",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$('Atom Admin Login').item.json.access}}"
+            }
+          ]
+        }
+      },
+      "typeVersion": 4.2
+    },
+    {
+      "id": "0766a333-225b-425b-8046-c71d228836b2",
+      "name": "Build Atom Post Payload",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        1580,
+        2420
+      ],
+      "parameters": {
+        "jsCode": "const blog = $('MongoDB8').first().json;\nconst html = $('Code8').first().json.blog_html || '';\nconst media = $('Atom Create Media').first().json;\n\nconst words = (blog.blog_article || '').split(/\\s+/).length;\nconst reading_time_sec = Math.round((words / 200) * 60);\n\nconst CATEGORY_ID = 1;\nconst TAG_IDS = [];\n\nreturn {\n  json: {\n    _id: blog._id,\n    slug: blog.slug,\n    post_payload: {\n      title: blog.blog_title,\n      excerpt: blog.meta_description || '',\n      content: html,\n      status: \"draft\",\n      visibility: \"public\",\n      seo_title: blog.meta_title,\n      seo_description: blog.meta_description,\n      slug: blog.slug,\n      canonical_url: null,\n      likes_count: 0,\n      views_count: 0,\n      reading_time_sec,\n      category_id: CATEGORY_ID,\n      tag_ids: TAG_IDS,\n      cover_media_id: media.id,\n      og_image_id: media.id\n    }\n  }\n};"
+      },
+      "typeVersion": 2
+    },
+    {
+      "id": "d8c10c7b-fc7c-4fd8-952a-4dc2120d9177",
+      "name": "Atom Create Blog Post",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        1760,
+        2420
+      ],
+      "parameters": {
+        "url": "https://YOUR_API_BASE/api/blog/posts/",
+        "method": "POST",
+        "options": {},
+        "sendBody": true,
+        "sendHeaders": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.post_payload }}",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$('Atom Admin Login').item.json.access}}"
+            }
+          ]
+        }
+      },
+      "typeVersion": 4.2
+    },
+    {
+      "id": "bdb7f4db-76c2-4f50-8847-f26690416c7b",
+      "name": "Atom Publish Blog Post",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        1940,
+        2420
+      ],
+      "parameters": {
+        "url": "=https://YOUR_API_BASE/api/blog/posts/{{$json.slug}}/publish/",
+        "method": "POST",
+        "options": {},
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$('Atom Admin Login').item.json.access}}"
+            }
+          ]
+        }
+      },
+      "typeVersion": 4.2
+    },
+    {
+      "id": "7858e0b3-951f-4a56-9955-6de066dbc264",
+      "name": "Atom Blog Get Posts",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        60,
+        1400
+      ],
+      "parameters": {
+        "url": "=https://YOUR_API_BASE/api/blog/posts/?page_size=50&ordering=-published_at&status=published&visibility=public",
+        "options": {},
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$('Atom Admin Login').item.json.access}}"
+            }
+          ]
+        }
+      },
+      "typeVersion": 4.2
+    },
+    {
+      "id": "735e5f59-ab9e-4768-a7d1-afa652a52236",
+      "name": "Build Internal Link Candidates",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        240,
+        1400
+      ],
+      "parameters": {
+        "jsCode": "const res = $json;\nconst posts = res.results || [];\n\nconst candidates = posts.map(p => ({\n  slug: p.slug,\n  title: p.title,\n  url: p.canonical_url || `https://YOUR_FRONTEND_BLOG_DOMAIN/posts/${p.slug}`,\n  seo_title: p.seo_title,\n  seo_description: p.seo_description\n}));\n\nconst blog = $('MongoDB3').first().json;\n\nreturn {\n  json: {\n    ...blog,\n    internal_link_candidates: candidates\n  }\n};"
+      },
+      "typeVersion": 2
     }
   ],
   "pinData": {},
@@ -1942,17 +1921,6 @@
         ]
       ]
     },
-    "Code8": {
-      "main": [
-        [
-          {
-            "node": "Wordpress1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Code9": {
       "main": [
         [
@@ -1975,28 +1943,6 @@
         ]
       ]
     },
-    "Code12": {
-      "main": [
-        [
-          {
-            "node": "MongoDB15",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Code14": {
-      "main": [
-        [
-          {
-            "node": "MongoDB16",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Filter": {
       "main": [
         [
@@ -2006,16 +1952,6 @@
             "index": 0
           }
         ]
-      ]
-    },
-    "OpenAI": {
-      "main": [
-        []
-      ]
-    },
-    "MongoDB": {
-      "main": [
-        []
       ]
     },
     "AI Agent": {
@@ -2034,22 +1970,6 @@
         [
           {
             "node": "Split Out1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "MongoDB2": {
-      "main": [
-        []
-      ]
-    },
-    "MongoDB3": {
-      "main": [
-        [
-          {
-            "node": "Wordpress Get Posts",
             "type": "main",
             "index": 0
           }
@@ -2076,11 +1996,6 @@
             "index": 0
           }
         ]
-      ]
-    },
-    "MongoDB6": {
-      "main": [
-        []
       ]
     },
     "MongoDB7": {
@@ -2138,11 +2053,6 @@
         ]
       ]
     },
-    "AI Agent4": {
-      "main": [
-        []
-      ]
-    },
     "AI Agent5": {
       "main": [
         [
@@ -2198,17 +2108,6 @@
         ]
       ]
     },
-    "Set Image": {
-      "main": [
-        [
-          {
-            "node": "Set metatag1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Split Out": {
       "main": [
         [
@@ -2253,28 +2152,6 @@
         ]
       ]
     },
-    "Wordpress1": {
-      "main": [
-        [
-          {
-            "node": "Set Image",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Wordpress2": {
-      "main": [
-        [
-          {
-            "node": "Code14",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "HTTP Request": {
       "main": [
         [
@@ -2286,55 +2163,11 @@
         ]
       ]
     },
-    "Set metatag1": {
-      "main": [
-        [
-          {
-            "node": "Wordpress2",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "HTTP Request1": {
       "main": [
         [
           {
             "node": "Wait",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "HTTP Request2": {
-      "main": [
-        [
-          {
-            "node": "HTTP Request3",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "HTTP Request3": {
-      "main": [
-        [
-          {
-            "node": "Upload image2",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Upload image2": {
-      "main": [
-        [
-          {
-            "node": "Code12",
             "type": "main",
             "index": 0
           }
@@ -2645,33 +2478,22 @@
         ]
       ]
     },
-    "Wordpress Get Posts": {
+    "SEO Gatekeeper Check": {
       "main": [
         [
           {
-            "node": "AI Agent2",
+            "node": "AI Agent7",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "MongoDB Save SEO Gate",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-      "SEO Gatekeeper Check": {
-        "main": [
-          [
-            {
-              "node": "AI Agent7",
-              "type": "main",
-              "index": 0
-            },
-            {
-              "node": "MongoDB Save SEO Gate",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
     "SEO Audit Schedule": {
       "main": [
         [
@@ -2694,44 +2516,187 @@
         ]
       ]
     },
-      "HTTP HTML Audit": {
-        "main": [
-          [
-            {
-              "node": "HTML Parse Audit",
+    "HTTP HTML Audit": {
+      "main": [
+        [
+          {
+            "node": "HTML Parse Audit",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-      "HTML Parse Audit": {
-        "main": [
-          [
-            {
-              "node": "SEO Audit Restore Context",
-              "type": "main",
-              "index": 0
-            }
-          ]
+    "HTML Parse Audit": {
+      "main": [
+        [
+          {
+            "node": "SEO Audit Restore Context",
+            "type": "main",
+            "index": 0
+          }
         ]
-      },
-      "SEO Audit Restore Context": {
-        "main": [
-          [
-            {
-              "node": "SEO Onpage Summary",
-              "type": "main",
-              "index": 0
-            }
-          ]
+      ]
+    },
+    "SEO Audit Restore Context": {
+      "main": [
+        [
+          {
+            "node": "SEO Onpage Summary",
+            "type": "main",
+            "index": 0
+          }
         ]
-      },
-      "SEO Onpage Summary": {
-        "main": [
-          [
-            {
-              "node": "MongoDB Save SEO Audit",
+      ]
+    },
+    "SEO Onpage Summary": {
+      "main": [
+        [
+          {
+            "node": "MongoDB Save SEO Audit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "Extract Image URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Image URL": {
+      "main": [
+        [
+          {
+            "node": "Atom Admin Login",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atom Admin Login": {
+      "main": [
+        [
+          {
+            "node": "Atom Create Media",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atom Create Media": {
+      "main": [
+        [
+          {
+            "node": "Save Blog Image URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Blog Image URL": {
+      "main": [
+        [
+          {
+            "node": "MongoDB15",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code8": {
+      "main": [
+        [
+          {
+            "node": "Build Atom Post Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Atom Post Payload": {
+      "main": [
+        [
+          {
+            "node": "Atom Create Blog Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atom Create Blog Post": {
+      "main": [
+        [
+          {
+            "node": "Atom Publish Blog Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atom Publish Blog Post": {
+      "main": [
+        [
+          {
+            "node": "Update Blog Record (Atom)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Blog Record (Atom)": {
+      "main": [
+        [
+          {
+            "node": "MongoDB16",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB3": {
+      "main": [
+        [
+          {
+            "node": "Atom Blog Get Posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atom Blog Get Posts": {
+      "main": [
+        [
+          {
+            "node": "Build Internal Link Candidates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Internal Link Candidates": {
+      "main": [
+        [
+          {
+            "node": "AI Agent2",
             "type": "main",
             "index": 0
           }
