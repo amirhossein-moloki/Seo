@@ -1,0 +1,1338 @@
+{
+  "name": "News Summarizer (v8 - Single Best Article)",
+  "nodes": [
+    {
+      "parameters": {
+        "chatId": "2075065850",
+        "text": "🚀 پردازش 9 منبع خبری آغاز شد...",
+        "additionalFields": {}
+      },
+      "name": "Send Initial Status",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        -3904,
+        -232
+      ],
+      "id": "398c4c38-f97c-4364-890c-1e8beafdda9b",
+      "webhookId": "fd181777-91e2-4f9a-9ad1-779f6ce3c151"
+    },
+    {
+      "parameters": {},
+      "name": "Daily Trigger",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [
+        -4352,
+        -232
+      ],
+      "id": "fb03aa33-4091-4d19-9562-952662ddef8d"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://atom-game.ir/api/token/",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"username\": \"amir\", \"password\": \"@mir1385514\" } }}",
+        "options": {}
+      },
+      "name": "Get API Token",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -4128,
+        -232
+      ],
+      "id": "c800dced-e0a3-4b79-84da-4e115aae586b"
+    },
+    {
+      "parameters": {
+        "functionCode": "const sources = [\n  {source:'GameSpot',  url:'https://www.gamespot.com/feeds/news'},\n  {source:'Kotaku',    url:'https://kotaku.com/feed'},\n  {source:'PCGamer',   url:'https://www.pcgamer.com/rss/'},\n  {source:'Polygon',   url:'https://www.polygon.com/rss/polygon-archives/index.xml'},\n  {source:'Eurogamer', url:'https://www.eurogamer.net/feed'},\n  {source:'VG247',     url:'https://www.vg247.com/feed'},\n  {source:'Gematsu',   url:'https://www.gematsu.com/feed'},\n  {source:'XboxWire',  url:'https://news.xbox.com/en-us/feed/'},\n  {source:'GamesPress',url:'https://www.gamespress.com/en-gb/News/RSS'}\n];\n\nconst message_id = $items()[0].json.result.message_id;\n\nreturn sources.map((item, index) => {\n  return {\n    json: {\n      ...item,\n      message_id: message_id,\n      itemIndex: index\n    }\n  };\n});"
+      },
+      "name": "Prepare Sources & Add IDs",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        -3680,
+        -232
+      ],
+      "id": "96ff1c83-3137-4965-b7f0-e12ec19f0d11"
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "name": "Split Sources",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 1,
+      "position": [
+        -3456,
+        -232
+      ],
+      "id": "102e2b30-04a2-4ed4-bf25-13b6917f9b3d"
+    },
+    {
+      "parameters": {
+        "url": "={{$json.url}}",
+        "options": {}
+      },
+      "name": "RSS Feed Read",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        -3232,
+        -304
+      ],
+      "id": "92e3bfa1-692c-4db5-87c0-3ee7acbc042a",
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "functionCode": "const parentData = $items('Split Sources')[0].json;\n\nif (items.length === 0) {\n  return [{ json: { ...parentData, success: false } }];\n}\n\nreturn items.map((article) => {\n  return {\n    json: {\n      ...article.json,\n      source: parentData.source,\n      message_id: parentData.message_id,\n      itemIndex: parentData.itemIndex,\n      success: true,\n    },\n  };\n});"
+      },
+      "name": "Tag Success/Fail",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        -3008,
+        -304
+      ],
+      "id": "13f42965-23ba-4293-872f-cef2b04376cb"
+    },
+    {
+      "parameters": {
+        "functionCode": "const parentData = $items('Split Sources')[0].json;\n\nconst anySuccess = items.some(i => i.json && i.json.success === true);\n\nreturn [{\n  json: {\n    source: parentData.source,\n    success: anySuccess,\n    message_id: parentData.message_id,\n    itemIndex: parentData.itemIndex\n  }\n}];"
+      },
+      "name": "Status Per Source",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        -2784,
+        -16
+      ],
+      "id": "a7344a1c-7bab-49cb-83ab-ed4324bbc2aa"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.message_id}}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
+      },
+      "name": "If Has MsgID",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -2560,
+        56
+      ],
+      "id": "6890ff1c-0ef7-4331-9203-6b810f0a9426"
+    },
+    {
+      "parameters": {},
+      "name": "Wait for Loop to Finish",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2,
+      "position": [
+        -2784,
+        -400
+      ],
+      "id": "73582ca5-c5cc-422c-8886-0e98119d141f"
+    },
+    {
+      "parameters": {
+        "functionCode": "// This node now receives a complete list of all articles from the Merge node.\n// No need for $items() anymore.\nconst allItems = items;\n\nconst firstValidItem = allItems.find(i => i.json && i.json.message_id);\nconst messageId = firstValidItem ? firstValidItem.json.message_id : null;\n\nconst validArticles = allItems.filter(i => i.json && i.json.success && i.json.title);\n\nconst seen = new Set();\nconst uniqueArticles = validArticles.filter(item => {\n  const key = item.json.link || item.json.title;\n  if (seen.has(key)) {\n    return false;\n  } else {\n    seen.add(key);\n    return true;\n  }\n});\n\nconst finalArticles = uniqueArticles.map(item => {\n  const json = item.json;\n  return {\n    title: json.title || \"بدون عنوان\",\n    link: json.link || \"#\",\n    source: json.source || \"نامشخص\",\n    rawContent: json.contentSnippet || json.content || \"\"\n  };\n});\n\nreturn [{\n  json: {\n    articles: finalArticles,\n    messageId: messageId\n  }\n}];"
+      },
+      "name": "Filter & Prepare All Articles",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        -2560,
+        -400
+      ],
+      "id": "d1c7c0e6-af2e-4cf9-9878-84c1d97c228d"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json.error}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "Check for Prep Error",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -2336,
+        -208
+      ],
+      "id": "73358935-b8a8-41ba-92f0-801898607ad3"
+    },
+    {
+      "parameters": {
+        "chatId": "2075065850",
+        "text": "={{ `❌ خطای نهایی:\n${$json.errorMessage}` }}",
+        "additionalFields": {}
+      },
+      "name": "Send Error to Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        -2112,
+        -208
+      ],
+      "id": "4ba349e2-ef55-4973-8923-39609650e628",
+      "webhookId": "b476a619-cc38-4885-9ab6-ded07a82ccd6"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$json.articles.length}}",
+              "operation": "larger"
+            }
+          ]
+        }
+      },
+      "name": "If Articles Exist",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -2336,
+        -496
+      ],
+      "id": "bf46e349-12a9-438b-8557-3abfba96ad89"
+    },
+    {
+      "parameters": {
+        "operation": "editMessageText",
+        "chatId": "2075065850",
+        "messageId": "={{$json.messageId}}",
+        "text": "✅ پردازش کامل شد. مقاله جدیدی برای خلاصه‌سازی یافت نشد.",
+        "additionalFields": {}
+      },
+      "name": "Update Final Status (No Articles)",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        -2112,
+        -400
+      ],
+      "id": "ed21c513-31c4-45d9-b02c-2d6e3a9d4075",
+      "webhookId": "97de5891-6192-4a04-9c9f-a921d44114d5"
+    },
+    {
+      "parameters": {
+        "url": "https://atom-game.ir/api/blog/posts/",
+        "options": {}
+      },
+      "name": "Get Recent Posts",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -2112,
+        -592
+      ],
+      "id": "136df811-0040-4555-ae75-4d72d3c3b3e2"
+    },
+    {
+      "parameters": {
+        "functionCode": "// انتظار داریم این نود بعد از \"Get Recent Posts\" اجرا شود.\nconst data = $json || {};\nconst results = Array.isArray(data.results) ? data.results : [];\n\nconst tagScores = {};\nconst categoryScores = {};\nconst TOTAL_WEIGHT_VIEWS = 1;\nconst TOTAL_WEIGHT_LIKES = 10;\nconst TOTAL_WEIGHT_COMMENTS = 20;\n\nfor (const post of results) {\n  const views = Number(post.views_count || 0);\n  const likes = Number(post.likes_count || 0);\n  const comments = Number(post.comments_count || 0);\n  const score = views * TOTAL_WEIGHT_VIEWS + likes * TOTAL_WEIGHT_LIKES + comments * TOTAL_WEIGHT_COMMENTS;\n\n  if (Array.isArray(post.tags)) {\n    for (const tag of post.tags) {\n      const key = tag.slug || tag.name || '';\n      if (!key) continue;\n      tagScores[key] = (tagScores[key] || 0) + score;\n    }\n  }\n\n  const cat = post.category;\n  if (cat) {\n    categoryScores[cat] = (categoryScores[cat] || 0) + score;\n  }\n}\n\nfunction topEntries(obj, limit = 5) {\n  return Object.entries(obj)\n    .sort((a, b) => b[1] - a[1])\n    .slice(0, limit)\n    .map(([key, score]) => ({ key, score }));\n}\n\nconst topTags = topEntries(tagScores, 7);\nconst topCategories = topEntries(categoryScores, 5);\n\nconst lines = [];\nif (topTags.length) {\n  lines.push('تگ‌های پربازدید اخیر:');\n  for (const t of topTags) {\n    lines.push(`- ${t.key} (امتیاز تقریبی: ${t.score})`);\n  }\n  lines.push('');\n}\n\nif (topCategories.length) {\n  lines.push('دسته‌بندی‌های پربازدید اخیر:');\n  for (const c of topCategories) {\n    lines.push(`- ${c.key} (امتیاز تقریبی: ${c.score})`);\n  }\n  lines.push('');\n}\n\nif (!lines.length) {\n  lines.push('داده کافی برای تحلیل سئو وجود ندارد.');\n}\n\nreturn [{\n  json: {\n    seo_insights: {\n      top_tags: topTags,\n      top_categories: topCategories\n    },\n    seo_summary_text: lines.join('\\n')\n  }\n}];\n"
+      },
+      "name": "Analyze SEO Performance",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        -1888,
+        -592
+      ],
+      "id": "b4c73ffe-26bd-4fee-9ffd-a39b0a8599f6"
+    },
+    {
+      "parameters": {
+        "functionCode": "const seo = $json || {};\n\nreturn [{\n  json: {\n    memory_context: {\n      seo_summary_text: seo.seo_summary_text || '',\n      seo_insights: seo.seo_insights || {}\n    }\n  }\n}];\n"
+      },
+      "name": "AI Memory Builder",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        -1664,
+        -592
+      ],
+      "id": "b3dbe358-10aa-41d6-abd6-942a1b2c7d75"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={\n  \"summary_markdown\":\n`تو یک استراتژیست سئو، Content Expander و «AI Reviewer دوم» برای وبلاگ بازی‌های ویدیویی atom-game.ir هستی.\n\nحافظهٔ کوتاه‌مدت تو از عملکرد سئو (memory_context):\n${JSON.stringify($items(\"AI Memory Builder\")[0].json.memory_context || {}, null, 2)}\n\nآمار عملکرد سئو در پست‌های اخیر (بر اساس بازدید، لایک و کامنت):\n${$items(\"AI Memory Builder\")[0].json.memory_context?.seo_summary_text || $items(\"Analyze SEO Performance\")[0].json.seo_summary_text || 'آماری در دسترس نیست.'}\n\nماموریت تو در این نسخه:\n1) از بین خبرهای زیر، فقط و فقط 1 خبر را انتخاب کن که:\n   - پتانسیل بالای سرچ در گوگل داشته باشد (ترندتر، جذاب‌تر، بحث‌برانگیزتر)\n   - برای گیمرها (PC, PlayStation, Xbox, Nintendo, موبایل) جذاب باشد\n   - بتوان حول آن یک پست وبلاگی منسجم و مفید نوشت\n2) بر اساس همان 1 خبر، یک پست وبلاگ واحد و منسجم تولید کن.\n3) ابتدا متن را بنویس (Content Expander)، سپس خودت به‌عنوان «AI Reviewer دوم»:\n   - غلط‌های نگارشی و عباراتی که مبهم یا خیلی کلیک‌بیتی هستند را اصلاح کن\n   - ساختار متن را بهتر کن (هدینگ‌ها، بولت‌ها، پاراگراف‌های کوتاه)\n4) محتوا باید:\n   - ساختار منطقی داشته باشد (مقدمه، بدنه، جمع‌بندی)\n   - قابل اسکن باشد (پاراگراف‌های کوتاه، هدینگ‌های H2/H3 در صورت نیاز، بولت‌لیست در جای مناسب)\n   - لحن حرفه‌ای و دوستانهٔ مناسب وبلاگ گیمینگ داشته باشد\n5) قوانین سئو:\n   - عنوان اصلی و seo_title باید حداقل یک کلمهٔ کلیدی مهم را داشته باشند.\n   - seo_title ترجیحاً زیر ۶۵ کاراکتر باشد.\n   - seo_description بین ۱۴۰ تا ۱۶۰ کاراکتر و شامل ۱ تا ۲ کلمهٔ کلیدی باشد.\n   - از کلیک‌بیت بسیار اغراق‌آمیز دوری کن، ولی جذابیت را حفظ کن.\n   - از کلمات ممنوع مرتبط با قمار، شرط‌بندی و موضوعات حساس دوری کن.\n6) حتماً فقط از همان 1 خبر انتخاب‌شده استفاده کن و خبرهای دیگر را قاطی نکن.\n\nخروجی تو باید فقط و فقط یک JSON معتبر باشد و هیچ متن دیگری نداشته باشد، دقیقا با این ساختار:\n\n{\n  \"summary_markdown\": \"متن مارک‌داون نهایی برای بدنهٔ پست وبلاگ...\",\n  \"title\": \"عنوان اصلی پست برای نمایش در سایت\",\n  \"title_variants\": [\"عنوان جایگزین ۱\", \"عنوان جایگزین ۲\", \"عنوان جایگزین ۳\"],\n  \"seo_title\": \"عنوان بهینه‌شده برای سئو (ترجیحاً زیر ۶۵ کاراکتر)\",\n  \"seo_description\": \"توضیحات متا بین ۱۴۰ تا ۱۶۰ کاراکتر با ۱ تا ۲ کلمهٔ کلیدی اصلی\",\n  \"category_slug\": \"game-news\",\n  \"series_slug\": \"daily-digest\",\n  \"tags\": [\"GTA 6\", \"Elden Ring\", \"PlayStation\"],\n  \"focus_keywords\": [\"کلمه کلیدی ۱\", \"کلمه کلیدی ۲\", \"کلمه کلیدی ۳\"],\n  \"chosen_index\": 0,\n  \"reason\": \"چرا این خبر را انتخاب کردی (یک یا دو جمله کوتاه)\"\n}\n\nتوضیحات:\n- chosen_index باید اندیس عددی همان خبری باشد که از بین لیست انتخاب می‌کنی (شروع از 0).\n- اگر به هر دلیل نتوانستی انتخاب کنی، به صورت پیش‌فرض اندیس 0 را برگردان.\n\nحالا لیست خبرهای امروز را می‌بینی. فقط و فقط از بین این‌ها یکی را انتخاب کن:\n\n${$items(\"Filter & Prepare All Articles\")[0].json.articles.map((a, index) =>\n  `شاخص: ${index}\nعنوان: ${a.title}\nمنبع: ${a.source}\nلینک: ${a.link}\nمحتوا: ${a.rawContent || ''}`\n).join(\"\\n---\\n\")}\n`,\n  \"title\": \"\",\n  \"title_variants\": [],\n  \"seo_title\": \"\",\n  \"seo_description\": \"\",\n  \"category_slug\": \"game-news\",\n  \"series_slug\": \"daily-digest\",\n  \"tags\": [],\n  \"focus_keywords\": [],\n  \"chosen_index\": 0,\n  \"reason\": \"\"\n}\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -1440,
+        -592
+      ],
+      "id": "20badc39-4581-4f91-a0f5-d2d773849e0c",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -1368,
+        -368
+      ],
+      "id": "7fd00f27-8e63-45c7-a854-86bd0ec5da53",
+      "name": "Google Gemini Chat Model"
+    },
+    {
+      "parameters": {
+        "functionCode": "const raw = $json.output || $json.text || $json.response || $json;\n\nlet meta;\ntry {\n  meta = typeof raw === 'string' ? JSON.parse(raw) : raw;\n} catch (e) {\n  const fallbackSummary = typeof raw === 'string' ? raw : JSON.stringify(raw);\n  meta = {\n    summary_markdown: fallbackSummary,\n    title: 'خلاصه مهم‌ترین خبرهای بازی امروز',\n    seo_title: 'خلاصه مهم‌ترین خبرهای بازی امروز',\n    seo_description: '',\n    category_slug: 'game-news',\n    series_slug: 'daily-digest',\n    tags: ['اخبار بازی'],\n    focus_keywords: [],\n    chosen_index: 0,\n    reason: 'fallback – JSON parse error'\n  };\n}\n\nconst summary = meta.summary_markdown || meta.summary || '';\nconst baseExcerpt = summary\n  .replace(/[\\r\\n]+/g, ' ')\n  .slice(0, 220);\n\nconst title = meta.title || 'خلاصه مهم‌ترین خبرهای بازی امروز';\nconst seoTitle = meta.seo_title || title;\nconst seoDescription = meta.seo_description || baseExcerpt;\n\nconst titleVariants = Array.isArray(meta.title_variants) ? meta.title_variants : [];\nconst focusKeywords = Array.isArray(meta.focus_keywords) ? meta.focus_keywords : [];\nconst chosenIndex = Number.isInteger(meta.chosen_index) ? meta.chosen_index : 0;\n\nreturn [{\n  json: {\n    summary_markdown: summary,\n    title,\n    title_variants: titleVariants,\n    excerpt: baseExcerpt,\n    seo_title: seoTitle,\n    seo_description: seoDescription,\n    category_slug: meta.category_slug || 'game-news',\n    series_slug: meta.series_slug || 'daily-digest',\n    tags: Array.isArray(meta.tags) ? meta.tags : ['اخبار بازی'],\n    focus_keywords: focusKeywords,\n    chosen_index: chosenIndex,\n    selection_reason: meta.reason || ''\n  }\n}];\n"
+      },
+      "name": "Parse AI JSON",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        -1088,
+        -592
+      ],
+      "id": "6f753d31-62e8-4fdf-a2e4-ef0a280a3cb0"
+    },
+    {
+      "parameters": {
+        "functionCode": "let { summary_markdown, seo_description } = $json;\n\nfunction cleanUrl(u) {\n  try {\n    const url = new URL(u);\n    const badParams = ['utm_source','utm_medium','utm_campaign','utm_term','utm_content','fbclid','gclid','ref'];\n    badParams.forEach(p => url.searchParams.delete(p));\n    return url.toString();\n  } catch (e) {\n    return u;\n  }\n}\n\nsummary_markdown = summary_markdown || '';\nseo_description = seo_description || '';\n\nconst urlRegex = /(https?:\\/\\/[^\\s)]+[^\\s)\\.,!?])/g;\nsummary_markdown = summary_markdown.replace(urlRegex, (m) => cleanUrl(m));\nseo_description = seo_description.replace(urlRegex, (m) => cleanUrl(m));\n\nconst ytRegex = /(https?:\\/\\/(?:www\\.)?(?:youtube\\.com\\/watch\\?v=|youtu\\.be\\/)([A-Za-z0-9_-]{6,}))/g;\nsummary_markdown = summary_markdown.replace(ytRegex, (match, url, vid) => {\n  const id = vid;\n  return `\\n<iframe width=\"560\" height=\"315\" src=\"https://www.youtube.com/embed/${id}\" frameborder=\"0\" allowfullscreen></iframe>\\n`;\n});\n\nconst textForLang = (summary_markdown || seo_description || '').slice(0, 1000);\nconst hasArabic = /[\\u0600-\\u06FF]/.test(textForLang);\nconst lang = hasArabic ? 'fa' : 'en';\n\nreturn [{\n  json: {\n    ...$json,\n    summary_markdown,\n    seo_description,\n    lang\n  }\n}];\n"
+      },
+      "name": "Clean URLs & Enhance Content",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        -864,
+        -592
+      ],
+      "id": "527d1d27-ad0d-4efe-a914-477455e65cd4"
+    },
+    {
+      "parameters": {
+        "functionCode": "const meta = $json;\nconst wrapper = $items('Filter & Prepare All Articles')[0].json;\nconst articles = Array.isArray(wrapper.articles) ? wrapper.articles : [];\n\nlet idx = Number(meta.chosen_index ?? 0);\nif (!(idx >= 0 && idx < articles.length)) {\n  idx = 0;\n}\n\nconst chosen = articles[idx] || null;\n\nreturn [{\n  json: {\n    ...meta,\n    chosen_article: chosen\n  }\n}];\n"
+      },
+      "name": "Pick Chosen Article",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        -640,
+        -784
+      ],
+      "id": "a7f57433-d52b-48d9-beff-660e0db92722"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.chosen_article.link }}",
+        "options": {}
+      },
+      "name": "Fetch Original Article HTML",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -416,
+        -784
+      ],
+      "id": "619ce975-25b9-404d-8a37-f76816c5a025"
+    },
+    {
+      "parameters": {
+        "functionCode": "const htmlItem = $json;\nconst body = htmlItem.body || htmlItem.data || htmlItem;\nconst text = typeof body === 'string' ? body : JSON.stringify(body);\n\nconst imgRegex = /<img[^>]+src=[\"']([^\"']+)[\"'][^>]*>/gi;\nconst urls = [];\nlet match;\n\nwhile ((match = imgRegex.exec(text)) !== null) {\n  const src = match[1];\n\n  if (\n    !src.includes('logo') &&\n    !src.includes('sprite') &&\n    !src.includes('icon') &&\n    !src.includes('tracking') &&\n    !src.startsWith('data:')\n  ) {\n    urls.push(src);\n  }\n}\n\nconst mainImage = urls[0] || '';\n\nreturn [{\n  json: {\n    mainImage,\n    allImages: urls\n  }\n}];\n"
+      },
+      "name": "Extract Image URLs",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        -192,
+        -784
+      ],
+      "id": "ba6d9333-0001-4c18-b428-f8da13e618d2"
+    },
+    {
+      "parameters": {
+        "url": "https://atom-game.ir/api/blog/categories/",
+        "options": {}
+      },
+      "name": "Get Categories",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -640,
+        -976
+      ],
+      "id": "702b5827-a662-41cc-9f8c-1f2278678846"
+    },
+    {
+      "parameters": {
+        "functionCode": "const meta = $items('Clean URLs & Enhance Content')[0].json;\nconst desiredSlug = (meta.category_slug || '').toString().trim().toLowerCase();\n\nconst categories = items.map(i => i.json);\n\nfunction norm(v) {\n  return String(v || '').toLowerCase();\n}\n\nlet match = null;\nif (desiredSlug) {\n  match = categories.find(c => norm(c.slug) === desiredSlug);\n  if (!match) {\n    match = categories.find(c => norm(c.name) === desiredSlug);\n  }\n}\n\nconst needsCreate = !match;\n\nreturn [{\n  json: {\n    needsCreate,\n    category_id: match && match.id != null ? match.id : null,\n    category_slug: match && match.slug ? match.slug : (meta.category_slug || '').toString().trim().toLowerCase() || 'game-news',\n    category_name: match && match.name ? match.name : (meta.category_slug || 'Game News')\n  }\n}];\n"
+      },
+      "name": "Select Category",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        -416,
+        -976
+      ],
+      "id": "a1b80a62-441c-4198-a6e3-d773f2c20e05"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json.needsCreate}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "If Create Category",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -192,
+        -976
+      ],
+      "id": "88cfec57-e6a4-454a-8239-92ecf089cdc7"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://atom-game.ir/api/blog/categories/",
+        "authentication": "predefinedCredentialType",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"slug\": $json.category_slug, \"name\": $json.category_name, \"parent\": 0 } }}",
+        "options": {}
+      },
+      "name": "Create Category",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        32,
+        -1072
+      ],
+      "id": "6c8c54cb-c27b-4ea1-bdcc-16128150a4a9"
+    },
+    {
+      "parameters": {
+        "functionCode": "return [{\n  json: {\n    category_id: $json.id,\n    category_slug: $json.slug,\n    category_name: $json.name\n  }\n}];\n"
+      },
+      "name": "Use Created Category",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        256,
+        -1072
+      ],
+      "id": "535d454a-7596-4126-aeb3-dd4cc2869ffd"
+    },
+    {
+      "parameters": {
+        "functionCode": "return [{\n  json: {\n    category_id: $json.category_id,\n    category_slug: $json.category_slug,\n    category_name: $json.category_name\n  }\n}];\n"
+      },
+      "name": "Use Existing Category",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        256,
+        -880
+      ],
+      "id": "a73d704c-8097-4d3e-aee6-b9e75cb55f0c"
+    },
+    {
+      "parameters": {},
+      "name": "Final Category",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2,
+      "position": [
+        480,
+        -976
+      ],
+      "id": "469ca5c6-8982-4675-bc3d-29553b264a32"
+    },
+    {
+      "parameters": {
+        "url": "https://atom-game.ir/api/blog/tags/",
+        "options": {}
+      },
+      "name": "Get Tags",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -640,
+        -208
+      ],
+      "id": "92d810f5-ac7d-4080-b289-8257fcb8e47d"
+    },
+    {
+      "parameters": {
+        "functionCode": "const meta = $items('Clean URLs & Enhance Content')[0].json;\nconst desiredTags = Array.isArray(meta.tags) ? meta.tags : [];\n\nconst availableTags = items.map(i => i.json);\n\nfunction norm(v) {\n  return String(v || '').trim().toLowerCase();\n}\n\nfunction slugify(str) {\n  return norm(str)\n    .replace(/[^a-z0-9]+/g, '-')\n    .replace(/^-+|-+$/g, '');\n}\n\nconst TAG_ALIASES = {\n  'gta vi': 'gta-6',\n  'gta 6': 'gta-6',\n  'grand theft auto 6': 'gta-6',\n  'elden ring': 'elden-ring',\n  'call of duty': 'call-of-duty',\n  'cod': 'call-of-duty',\n  'playstation': 'playstation',\n  'ps5': 'playstation-5',\n  'xbox': 'xbox',\n  'nintendo switch': 'nintendo-switch',\n  'pc': 'pc-gaming'\n};\n\nconst tagRecords = [];\n\nfor (const tagName of desiredTags) {\n  const baseNorm = norm(tagName);\n  const aliasSlug = TAG_ALIASES[baseNorm];\n  const desiredSlug = aliasSlug || slugify(tagName);\n\n  let found = availableTags.find(\n    t => norm(t.slug) === desiredSlug || norm(t.name) === baseNorm\n  );\n\n  if (!found) {\n    found = availableTags.find(\n      t => norm(t.name) === baseNorm || norm(t.slug) === baseNorm\n    );\n  }\n\n  if (found && found.id != null) {\n    tagRecords.push({\n      name: found.name || tagName,\n      slug: found.slug || desiredSlug,\n      id: found.id,\n      needsCreate: false\n    });\n  } else {\n    tagRecords.push({\n      name: tagName,\n      slug: desiredSlug,\n      id: null,\n      needsCreate: true\n    });\n  }\n}\n\nreturn tagRecords.map(r => ({ json: r }));\n"
+      },
+      "name": "Build Tag IDs",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        -416,
+        -208
+      ],
+      "id": "fa531e2e-645f-4c45-afc7-fc5e983bb2c0"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json.needsCreate}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "If Create Tag",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -192,
+        -208
+      ],
+      "id": "2766bfc3-0476-40dd-a7d9-374a935e7303"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://atom-game.ir/api/blog/tags/",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"slug\": $json.slug, \"name\": $json.name } }}",
+        "options": {}
+      },
+      "name": "Create Tag",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        32,
+        -304
+      ],
+      "id": "095021cd-42e5-41c0-9196-3adfe9ddb322"
+    },
+    {
+      "parameters": {
+        "functionCode": "return [{\n  json: {\n    id: $json.id,\n    name: $json.name,\n    slug: $json.slug\n  }\n}];\n"
+      },
+      "name": "Use Created Tag",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        256,
+        -304
+      ],
+      "id": "32907cd7-27a2-4273-bc7d-de01736eb772"
+    },
+    {
+      "parameters": {
+        "functionCode": "return [{\n  json: {\n    id: $json.id,\n    name: $json.name,\n    slug: $json.slug\n  }\n}];\n"
+      },
+      "name": "Use Existing Tag",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        256,
+        -112
+      ],
+      "id": "60b104a9-954c-4ec4-925b-db818c91099b"
+    },
+    {
+      "parameters": {},
+      "name": "Final Tags",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2,
+      "position": [
+        480,
+        -208
+      ],
+      "id": "4076d8b4-07f4-4683-97d4-a0bf0b6e8af1"
+    },
+    {
+      "parameters": {
+        "functionCode": "const tagIds = items\n  .map(i => i.json && i.json.id)\n  .filter(id => id != null);\n\nreturn [{\n  json: {\n    tag_ids: tagIds\n  }\n}];\n"
+      },
+      "name": "Collect Tag IDs",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        704,
+        -208
+      ],
+      "id": "42f94589-38b9-40e5-a354-cd42a9752b5d"
+    },
+    {
+      "parameters": {
+        "url": "https://atom-game.ir/api/blog/series/",
+        "options": {}
+      },
+      "name": "Get Series",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -640,
+        -592
+      ],
+      "id": "b93ac979-9e04-4519-bb87-6aa4626572fe"
+    },
+    {
+      "parameters": {
+        "functionCode": "const meta = $items('Clean URLs & Enhance Content')[0].json;\nconst desiredSlug = (meta.series_slug || '').toString().trim().toLowerCase();\n\nconst seriesList = items.map(i => i.json);\n\nfunction norm(v) {\n  return String(v || '').toLowerCase();\n}\n\nlet match = null;\nif (desiredSlug) {\n  match = seriesList.find(s => norm(s.slug) === desiredSlug);\n  if (!match) {\n    match = seriesList.find(s => norm(s.title) === desiredSlug);\n  }\n}\n\nconst needsCreate = !match;\n\nreturn [{\n  json: {\n    needsCreate,\n    series_id: match && match.id != null ? match.id : null,\n    series_slug: match && match.slug ? match.slug : (meta.series_slug || '').toString().trim().toLowerCase() || 'daily-digest',\n    series_title: match && match.title ? match.title : (meta.series_slug || 'Daily Digest')\n  }\n}];\n"
+      },
+      "name": "Select Series",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        -416,
+        -592
+      ],
+      "id": "a629f742-9bda-44e8-9bac-97c65b854c4c"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json.needsCreate}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "If Create Series",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -192,
+        -592
+      ],
+      "id": "ded0aacc-a01e-4074-9de4-233dfa177d69"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://atom-game.ir/api/blog/series/",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"slug\": $json.series_slug, \"title\": $json.series_title, \"description\": \"\", \"order_strategy\": \"manual\" } }}",
+        "options": {}
+      },
+      "name": "Create Series",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        32,
+        -688
+      ],
+      "id": "ffe8f21e-5c1e-4430-8c23-12c41c596b30"
+    },
+    {
+      "parameters": {
+        "functionCode": "return [{\n  json: {\n    series_id: $json.id,\n    series_slug: $json.slug,\n    series_title: $json.title\n  }\n}];\n"
+      },
+      "name": "Use Created Series",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        256,
+        -688
+      ],
+      "id": "1c765873-3327-4510-ad53-e4a3e1d3c521"
+    },
+    {
+      "parameters": {
+        "functionCode": "return [{\n  json: {\n    series_id: $json.series_id,\n    series_slug: $json.series_slug,\n    series_title: $json.series_title\n  }\n}];\n"
+      },
+      "name": "Use Existing Series",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        256,
+        -496
+      ],
+      "id": "62bfbc6d-db14-4c3f-97ab-a6a2d4b10c01"
+    },
+    {
+      "parameters": {},
+      "name": "Final Series",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2,
+      "position": [
+        480,
+        -592
+      ],
+      "id": "ee020f18-fcbe-4be8-93ef-cc55af1f5619"
+    },
+    {
+      "parameters": {
+        "functionCode": "const meta = $items('Clean URLs & Enhance Content')[0].json;          // نسخه V8: بعد از تمیزکاری لینک‌ها و تشخیص زبان\nconst categoryInfo = $items('Final Category')[0].json;\nconst seriesInfo = $items('Final Series')[0].json;\nconst tagInfo = $items('Collect Tag IDs')[0].json;\nconst chosenWrapper = $items('Pick Chosen Article')[0].json;\nconst chosenArticle = chosenWrapper.chosen_article || null;\nconst imageInfo = $items('Extract Image URLs')[0].json || {};\n\nconst langItem = $items('Clean URLs & Enhance Content')[0].json || {};\nconst lang = langItem.lang || 'fa';\n\nfunction slugify(str) {\n  return String(str || 'post')\n    .trim()\n    .toLowerCase()\n    .replace(/[آاآإءئؤة]/g, 'a')\n    .replace(/[^a-z0-9]+/g, '-')\n    .replace(/^-+|-+$/g, '');\n}\n\nconst title = meta.title || 'خلاصه مهم‌ترین خبرهای بازی امروز';\nconst slug = slugify(title);\n\nconst mainImage = imageInfo.mainImage || '';\n\nfunction buildContent() {\n  const base = meta.summary_markdown || '';\n  if (!mainImage) return base;\n\n  const alt =\n    meta.seo_title ||\n    meta.title ||\n    (chosenArticle && chosenArticle.title) ||\n    'تصویر مقاله';\n\n  const imgMarkdown = `![${alt}](${mainImage})\\n\\n`;\n  return imgMarkdown + base;\n}\n\nconst body = {\n  title,\n  excerpt: meta.excerpt || '',\n  content: buildContent(),\n  status: 'draft',\n  visibility: 'public',\n  seo_title: meta.seo_title || title,\n  seo_description: meta.seo_description || (meta.excerpt || ''),\n  slug,\n  canonical_url: `https://atom-game.ir/blog/${slug}/`,\n  language: lang\n};\n\nif (categoryInfo && categoryInfo.category_id != null) {\n  body.category_id = categoryInfo.category_id;\n}\n\nif (seriesInfo && seriesInfo.series_id != null) {\n  body.series = seriesInfo.series_id;\n}\n\nif (tagInfo && Array.isArray(tagInfo.tag_ids) && tagInfo.tag_ids.length > 0) {\n  body.tag_ids = tagInfo.tag_ids;\n}\n\nif (mainImage) {\n  body.main_image_url = mainImage;\n}\nif (chosenArticle && chosenArticle.link) {\n  body.source_url = chosenArticle.link;\n}\n\nreturn [{ json: body }];\n"
+      },
+      "name": "Build Blog Post Payload",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        704,
+        -976
+      ],
+      "id": "3f4fe813-e41b-47ca-be56-3da701870ea3"
+    },
+    {
+      "parameters": {
+        "url": "https://atom-game.ir/api/blog/posts/",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{$json}}",
+        "options": {}
+      },
+      "name": "Create Blog Post",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        928,
+        -976
+      ],
+      "id": "4812f711-09b1-4f2c-b8ed-42748812f463"
+    },
+    {
+      "parameters": {
+        "chatId": "2075065850",
+        "text": "={{ $json.summary_markdown || $json.text || $json.output || $json.response }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "name": "Send Summary",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        -640,
+        -400
+      ],
+      "id": "5e1a6fe5-3dfa-4024-beaa-22df52dc0a53",
+      "webhookId": "82bd8bb8-75c2-4de6-84a0-b8fd3261d9e2"
+    },
+    {
+      "parameters": {
+        "operation": "editMessageText",
+        "chatId": "2075065850",
+        "messageId": "={{$json.message_id}}",
+        "text": "={{ \n  (()=>{\n    const total = ($items('Prepare Sources & Add IDs') || []).length || 0;\n    const currentIndex = $json.itemIndex + 1;\n    const src = $json.source || 'نامشخص';\n    const ok = $json.success === true ? ' ✅' : ' ❌';\n    return `⚙️ [${currentIndex}/${total}] پردازش شد: ${src}${ok}`;\n  })()\n}}",
+        "additionalFields": {}
+      },
+      "name": "Update Status",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        -2336,
+        56
+      ],
+      "id": "628dc211-679a-4859-aa1b-2c5c19c9c4fd",
+      "webhookId": "25694a74-b3b9-4e93-a908-fc17c290080f",
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "operation": "editMessageText",
+        "chatId": "2075065850",
+        "messageId": "={{$node[\"Filter & Prepare All Articles\"].json.messageId}}",
+        "text": "✅ پردازش کامل شد. خلاصه اخبار جدید برای شما ارسال گردید.",
+        "additionalFields": {}
+      },
+      "name": "Update Final Status (Success)",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        -416,
+        -400
+      ],
+      "id": "8c7c9ab8-8d96-443c-9dd7-72b1917126b7",
+      "webhookId": "137e69ab-b2b0-4b85-b32d-389ec022d6b1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Daily Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get API Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get API Token": {
+      "main": [
+        [
+          {
+            "node": "Send Initial Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Initial Status": {
+      "main": [
+        [
+          {
+            "node": "Prepare Sources & Add IDs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Sources & Add IDs": {
+      "main": [
+        [
+          {
+            "node": "Split Sources",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Sources": {
+      "main": [
+        [
+          {
+            "node": "RSS Feed Read",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Feed Read": {
+      "main": [
+        [
+          {
+            "node": "Tag Success/Fail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tag Success/Fail": {
+      "main": [
+        [
+          {
+            "node": "Status Per Source",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Wait for Loop to Finish",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Status Per Source": {
+      "main": [
+        [
+          {
+            "node": "If Has MsgID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Has MsgID": {
+      "main": [
+        [
+          {
+            "node": "Update Status",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Split Sources",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for Loop to Finish": {
+      "main": [
+        [
+          {
+            "node": "Filter & Prepare All Articles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter & Prepare All Articles": {
+      "main": [
+        [
+          {
+            "node": "If Articles Exist",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Check for Prep Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check for Prep Error": {
+      "main": [
+        [
+          {
+            "node": "Send Error to Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Articles Exist": {
+      "main": [
+        [
+          {
+            "node": "Get Recent Posts",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update Final Status (No Articles)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Recent Posts": {
+      "main": [
+        [
+          {
+            "node": "Analyze SEO Performance",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze SEO Performance": {
+      "main": [
+        [
+          {
+            "node": "AI Memory Builder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Memory Builder": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Parse AI JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse AI JSON": {
+      "main": [
+        [
+          {
+            "node": "Clean URLs & Enhance Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clean URLs & Enhance Content": {
+      "main": [
+        [
+          {
+            "node": "Send Summary",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Categories",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Tags",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Series",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Pick Chosen Article",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pick Chosen Article": {
+      "main": [
+        [
+          {
+            "node": "Fetch Original Article HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Original Article HTML": {
+      "main": [
+        [
+          {
+            "node": "Extract Image URLs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Categories": {
+      "main": [
+        [
+          {
+            "node": "Select Category",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select Category": {
+      "main": [
+        [
+          {
+            "node": "If Create Category",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Create Category": {
+      "main": [
+        [
+          {
+            "node": "Create Category",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Use Existing Category",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Category": {
+      "main": [
+        [
+          {
+            "node": "Use Created Category",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Use Created Category": {
+      "main": [
+        [
+          {
+            "node": "Final Category",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Use Existing Category": {
+      "main": [
+        [
+          {
+            "node": "Final Category",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Final Category": {
+      "main": [
+        [
+          {
+            "node": "Build Blog Post Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Tags": {
+      "main": [
+        [
+          {
+            "node": "Build Tag IDs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Tag IDs": {
+      "main": [
+        [
+          {
+            "node": "If Create Tag",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Create Tag": {
+      "main": [
+        [
+          {
+            "node": "Create Tag",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Use Existing Tag",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Tag": {
+      "main": [
+        [
+          {
+            "node": "Use Created Tag",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Use Created Tag": {
+      "main": [
+        [
+          {
+            "node": "Final Tags",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Use Existing Tag": {
+      "main": [
+        [
+          {
+            "node": "Final Tags",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Final Tags": {
+      "main": [
+        [
+          {
+            "node": "Collect Tag IDs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Series": {
+      "main": [
+        [
+          {
+            "node": "Select Series",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select Series": {
+      "main": [
+        [
+          {
+            "node": "If Create Series",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Create Series": {
+      "main": [
+        [
+          {
+            "node": "Create Series",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Use Existing Series",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Series": {
+      "main": [
+        [
+          {
+            "node": "Use Created Series",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Use Created Series": {
+      "main": [
+        [
+          {
+            "node": "Final Series",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Use Existing Series": {
+      "main": [
+        [
+          {
+            "node": "Final Series",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Build Blog Post Payload": {
+      "main": [
+        [
+          {
+            "node": "Create Blog Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Summary": {
+      "main": [
+        [
+          {
+            "node": "Update Final Status (Success)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "bf4860c1-10f2-4577-894f-867f0debfdad",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e9454ea9478c061d99a0e1cabdf5e316dde546b0101fb995715b05a70ccf445e"
+  },
+  "id": "qn8mt8bXJqV2mcpi",
+  "tags": []
+}
